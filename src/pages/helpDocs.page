@@ -1,0 +1,5 @@
+<apex:page sidebar="false" tabStyle="Help_Docs__tab">
+	<iframe
+		src="http://salesforcehelp.onenw.org/login_form?__ac_name=salesforce&__ac_password=salesforce&form.submitted=1&came_from=http://salesforcehelp.onenw.org/default-help-documentation/"
+		width="100%" height="600" frameborder="no"> </iframe>
+</apex:page>

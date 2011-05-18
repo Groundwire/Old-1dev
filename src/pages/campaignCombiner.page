@@ -1,0 +1,258 @@
+<apex:page controller="GW_CTRL_CampaignCombiner"
+	title="Campaign Combiner" tabStyle="Campaign">
+	<!--
+Visualforce Campaign Combiner Page for Salesforce.com
+Allows users to combine campaigns by adding and subtracting members of other campaigns
+Written by Evan Callahan, copyright (c) 2010 Groundwire, 1402 3rd Avenue, Suite 1000, Seattle, WA 98101
+This program is released under the GNU General Public License. http://www.gnu.org/licenses/
+-->
+	<style>
+input {
+	vertical-align: top;
+}
+
+.show {
+	display: block;
+}
+
+.hide {
+	display: none;
+}
+
+ul.err li {
+	list-style-type: none;
+	color: #cc0000;
+	font-weight: bold;
+}
+
+table.campaignList {
+	padding-bottom: .6em;
+}
+
+.boldLabel {
+	font-weight: bold;
+}
+</style>
+	<apex:sectionHeader title="Combine Campaigns" subtitle="{!IF(wizardStep==1,'Step 1: Select or create target campaign','Step 2: Specify members to add or exclude') }" />
+		<apex:outputPanel layout="block" style="margin-bottom:.8em;">
+			<apex:outputText rendered="{!(wizardStep==1)}"
+				value="Select or create the campaign you want to affect. In the next step, you'll select campaigns containing members to add or remove." />
+			<apex:outputText rendered="{!(wizardStep==2)}"
+				value="Specify campaigns containing members you want to add to or exclude from the target campaign, and then click Combine Members." />
+		</apex:outputPanel>
+		<apex:form >
+
+			<!-- STEP 1 -->
+			<apex:outputPanel rendered="{!(wizardStep==1)}">
+				<apex:pageBlock title="Target Campaign">
+					<apex:pageBlockButtons >
+						<apex:commandButton action="{!step2}" value="Continue" />
+						<apex:commandButton action="{!cancel}" value="Cancel" />
+					</apex:pageBlockButtons>
+					<apex:messages styleClass="err" />
+					<apex:outputPanel id="targetCampaignEntry">
+						<apex:pageBlockSection title="Select Existing Campaign"
+							columns="1" collapsible="false" id="cPicker">
+							<apex:pageBlockSectionItem id="campaignSelect">
+								<apex:outputLabel value="Campaign Name" />
+								<apex:inputField value="{!targetCampaignPicker.ParentId}" />
+							</apex:pageBlockSectionItem>
+						</apex:pageBlockSection>
+						<apex:pageBlockSection title="-OR- Create New Campaign"
+							columns="2" collapsible="false" id="newC">
+							<apex:pageBlockSectionItem >
+								<apex:outputLabel value="Campaign Name" />
+								<apex:inputText value="{!newCampaignName}">
+									<apex:actionsupport event="onchange" action="{!clearPicker}"
+										rerender="cPicker" />
+								</apex:inputText>
+							</apex:pageBlockSectionItem>
+							<apex:inputField value="{!targetCampaign.StartDate}" />
+							<apex:inputField value="{!targetCampaign.ParentId}" />
+							<apex:inputField value="{!targetCampaign.EndDate}" />
+							<apex:inputField value="{!targetCampaign.Type}" />
+							<apex:inputField value="{!targetCampaign.Status}" />
+						</apex:pageBlockSection>
+					</apex:outputPanel>
+				</apex:pageBlock>
+			</apex:outputPanel>
+
+			<!-- STEP 2 -->
+			<apex:outputPanel rendered="{!(wizardStep==2)}">
+				<apex:pageBlock title="Options" id="targetCampaignBlock">
+					<apex:pageBlockButtons >
+						<apex:commandButton action="{!combine}" value="Combine Members"
+							rendered="{!(done==false)}" />
+						<apex:commandButton action="{!cancel}"
+							value="{!IF(done, 'Return to Campaign', 'Cancel')}" />
+					</apex:pageBlockButtons>
+					<apex:messages styleClass="err" />
+						<apex:pageBlockSection title="Target Campaign" columns="2"
+							collapsible="false">
+							<apex:pageBlockSectionItem >
+								<apex:outputLabel value="Campaign Name" />
+								<apex:outputLink value="{!('/' + targetCampaign.Id)}"
+									target="{!IF(done, '_top', '_blank')}">
+									<apex:outputText value="{!targetCampaign.Name}" />
+								</apex:outputLink>
+							</apex:pageBlockSectionItem>
+							<apex:outputField value="{!targetCampaign.OwnerId}" />
+							<apex:outputField value="{!targetCampaign.ParentId}" />
+							<apex:outputField value="{!targetCampaign.Status}" />
+							<apex:outputField value="{!targetCampaign.Type}" />
+							<apex:outputField value="{!targetCampaign.StartDate}" />
+							<apex:outputField value="{!targetCampaign.NumberOfContacts}"
+								rendered="{!OR(done==false, batchJobCount==0)}" />
+							<apex:outputField value="{!targetCampaign.EndDate}" />
+							<apex:outputField value="{!targetCampaign.Unconverted_Leads__c}"
+								rendered="{!OR(done==false, batchJobCount==0)}" />
+							<apex:outputField value="{!targetCampaign.IsActive}" />
+							<apex:outputPanel />
+						</apex:pageBlockSection>
+						<apex:actionRegion >
+							<apex:pageBlockSection title="Add Members from These Campaigns"
+								columns="1" id="addSection" collapsible="false">
+								<apex:pageBlockSectionItem id="campaignSelect">
+									<apex:outputLabel value="Campaign Name" />
+									<apex:outputPanel >
+										<apex:inputField value="{!campaignToAddPicker.parentId}"
+											id="picker1">
+										</apex:inputField>
+										<apex:commandLink value="[ add to list ]"
+											action="{!loadAddition}"
+											onclick="if(document.getElementById('{!$Component.picker1}').value=='') { alert('Specify Campaign Name, then click Add to List.'); return false; }" />
+										<apex:outputText value=" " />
+										<apex:commandLink value=" [ clear list ]"
+											action="{!clearAdds}" />
+									</apex:outputPanel>
+								</apex:pageBlockSectionItem>
+								<apex:pageBlockSectionItem rendered="{!(adds > 0)}">
+									<apex:outputPanel />
+									<apex:pageBlockTable value="{!campaignsToAdd}" var="tc"
+										styleclass="campaignList">
+										<apex:column >
+											<apex:facet name="header">Campaign Name</apex:facet>
+											<apex:outputLink value="{!('/' + tc.id)}" target="_blank">
+												<apex:outputText value="{!tc.name}" />
+											</apex:outputLink>
+										</apex:column>
+										<!-- <apex:column value="{!tc.type}" /> -->
+										<apex:column value="{!tc.startDate}" />
+										<!-- <apex:column value="{!tc.status}" /> -->
+										<apex:column value="{!tc.NumberOfContacts}" />
+										<apex:column value="{!tc.Unconverted_Leads__c}" />
+									</apex:pageBlockTable>
+								</apex:pageBlockSectionItem>
+								<apex:pageBlockSectionItem rendered="{!(adds > 0)}">
+									<apex:outputPanel />
+									<apex:outputPanel >
+										<apex:outputLabel value="Add members with status:"
+											styleClass="boldLabel" />
+										<apex:outputText value="  " />
+										<apex:selectList value="{!addMemberStatus}" size="1">
+											<apex:selectOptions value="{!allMemberStatuses}" />
+										</apex:selectList>
+									</apex:outputPanel>
+								</apex:pageBlockSectionItem>
+								<apex:pageBlockSectionItem rendered="{!(adds > 1)}">
+									<apex:outputPanel />
+									<apex:outputPanel >
+										<apex:inputCheckbox value="{!intersectionForAdds}" />
+										<apex:outputLabel value="Add members only if they belong to all these campaigns"
+											styleClass="boldLabel" />
+									</apex:outputPanel>
+								</apex:pageBlockSectionItem>
+							</apex:pageBlockSection>
+						</apex:actionRegion>
+						<apex:actionRegion >
+							<apex:pageBlockSection title="Exclude Members from These Campaigns" columns="1"
+								id="subtractSection" collapsible="false">
+								<apex:pageBlockSectionItem id="campaignSelect">
+									<apex:outputLabel value="Campaign Name" />
+									<apex:outputPanel >
+										<apex:inputField value="{!campaignToSubtractPicker.parentId}"
+											id="picker2">
+										</apex:inputField>
+										<apex:commandLink value="[ add to list ]"
+											action="{!loadSubtraction}"
+											onclick="if (document.getElementById('{!$Component.picker2}').value=='') { alert('Specify Campaign Name, then click Add to List.'); return false; };" />
+										<apex:outputText value=" " />
+										<apex:commandLink value="[ clear list ]"
+											action="{!clearSubtracts}" />
+									</apex:outputPanel>
+								</apex:pageBlockSectionItem>
+								<apex:pageBlockSectionItem rendered="{!(subtracts > 0)}">
+									<apex:outputPanel />
+									<apex:pageBlockTable value="{!campaignsToSubtract}" var="tc"
+										styleclass="campaignList">
+										<apex:column >
+											<apex:facet name="header">Campaign Name</apex:facet>
+											<apex:outputLink value="{!('/' + tc.id)}" target="_blank">
+												<apex:outputText value="{!tc.name}" />
+											</apex:outputLink>
+										</apex:column>
+										<!-- <apex:column value="{!tc.type}" /> -->
+										<apex:column value="{!tc.startDate}" />
+										<!-- <apex:column value="{!tc.status}" /> -->
+										<apex:column value="{!tc.NumberOfContacts}" />
+										<apex:column value="{!tc.Unconverted_Leads__c}" />
+									</apex:pageBlockTable>
+								</apex:pageBlockSectionItem>
+								<apex:pageBlockSectionItem rendered="{!(subtracts > 0)}">
+									<apex:outputPanel />
+									<apex:outputPanel >
+										<apex:outputLabel value="Exclude members with status:"
+											styleClass="boldLabel" />
+										<apex:outputText value="  " />
+										<apex:selectList value="{!excludeMemberStatus}" size="1">
+											<apex:selectOptions value="{!allMemberStatuses}" />
+										</apex:selectList>
+									</apex:outputPanel>
+								</apex:pageBlockSectionItem>
+								<apex:pageBlockSectionItem rendered="{!(subtracts > 1)}">
+									<apex:outputPanel />
+									<apex:outputPanel >
+										<apex:inputCheckbox value="{!intersectionForSubtracts}" />
+										<apex:outputLabel value="Exclude members only if they belong to all these campaigns"
+											styleClass="boldLabel" />
+									</apex:outputPanel>
+								</apex:pageBlockSectionItem>
+							</apex:pageBlockSection>
+						</apex:actionRegion>
+						<apex:outputPanel id="miscSection">
+							<apex:pageBlockSection title="Options" columns="1"
+								collapsible="false" rendered="{!(adds > 0)}">
+								<apex:pageBlockSectionItem >
+									<apex:outputLabel value="Status for new members" />
+									<apex:selectList value="{!newMemberStatus}" size="1">
+										<apex:selectOptions value="{!memberStatuses}" />
+									</apex:selectList>
+								</apex:pageBlockSectionItem>
+							</apex:pageBlockSection>
+						</apex:outputPanel>
+						<apex:outputPanel id="results">
+							<apex:pageBlockSection title="Result" columns="1"
+								collapsible="false" rendered="{!NOT(ISNULL(resultMessage))}">
+								<apex:pageBlockSectionItem >
+									<apex:outputLabel value="Result" />
+									<apex:outputText value="{!resultMessage}" />
+								</apex:pageBlockSectionItem>
+							</apex:pageBlockSection>
+						</apex:outputPanel>
+				</apex:pageBlock>
+				<apex:outputPanel rendered="{!AND(done, batchJobCount > 0)}">
+					<c:batchJobs batchComponentLabel="{!batchLabel}"
+						numberOfJobs="{!batchJobCount}" />
+				</apex:outputPanel>
+			</apex:outputPanel>
+			<apex:outputPanel layout="block" style="float:right;">
+				<apex:outputtext value="brought to you by"
+					style="font-size:10px;line-height:12px;" />
+				<br />
+				<apex:outputLink value="http://groundwire.org/" target="_blank">
+					<apex:image url="{!$Resource.GroundwireLogo}" width="159"
+						height="40" />
+				</apex:outputLink>
+			</apex:outputPanel>
+		</apex:form>
+</apex:page>

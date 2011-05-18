@@ -1,0 +1,79 @@
+<apex:page controller="ONEN_CTRL_ConfigureDrip" tabStyle="Campaign">
+
+	<apex:form >
+		<apex:sectionHeader title="Drip Campaign"
+			subtitle="Configure this Drip Campaign">
+		</apex:sectionHeader>
+		<apex:pageBlock title="Create Drip Series Emails" mode="edit">
+			<apex:outputtext rendered="{!existingSteps}">
+				<span style="color: red;">
+				<p><strong>WARNING: There are existing drip steps for
+				this campaign already. Are you sure you wish to create additional
+				new drip steps?</strong><br />
+				<br />
+				</p>
+				</span>
+			</apex:outputtext>
+			<apex:panelGrid columns="3" id="theGrid" cellpadding="4">
+				<apex:outputText value="# of Emails in Series" styleClass="labelCol" />
+				<apex:outputText value="Immediate First Send?" styleClass="labelCol" />
+				<apex:outputText value="Interval" styleClass="labelCol" />
+				<apex:selectList value="{!numberOfDripEvents}" id="dripEmailCount"
+					multiselect="false" size="1">
+					<apex:selectOptions value="{!items}" />
+				</apex:selectList>
+				<apex:inputCheckbox id="sendImmediate" value="{!startToday}" />
+				<apex:outputPanel id="thePanel">
+					<apex:selectList value="{!interval}" id="intervals"
+						multiselect="false" size="1">
+						<apex:selectOptions value="{!intervals}" />
+					</apex:selectList>
+					<apex:selectList value="{!intervalunit}" id="intervalunits"
+						multiselect="false" size="1">
+						<apex:selectOptions value="{!intervalunits}" />
+					</apex:selectList>
+				</apex:outputPanel>
+			</apex:panelGrid>
+			<apex:pageBlockButtons >
+				<apex:commandButton action="{!showSteps}" rerender="dripseriestable"
+					value="Next" />
+			</apex:pageBlockButtons>
+
+		</apex:pageBlock>
+	</apex:form>
+
+	<apex:outputPanel id="dripseriestable">
+		<apex:outputPanel rendered="{!renderSteps}">
+			<apex:form >
+				<apex:pageBlock title="Drip Emails to be Created" mode="edit">
+
+					<apex:pageBlockTable value="{!DripSteps}" var="thisDripStep"
+						id="theTable" rowClasses="odd,even" styleClass="tableClass"
+						cellpadding="4">
+						<apex:column >
+							<apex:facet name="header">Interval Unit</apex:facet>
+							<apex:inputField value="{!thisDripStep.Interval_Unit__c}" />
+						</apex:column>
+						<apex:column >
+							<apex:facet name="header">Interval Type</apex:facet>
+							<apex:inputField value="{!thisDripStep.Interval_Type__c}" />
+						</apex:column>
+						<apex:column >
+							<apex:facet name="header">Email Template</apex:facet>
+							<apex:selectList value="{!thisDripStep.Email_Template__c}"
+								id="dripEmailTemplates" multiselect="false" size="1"
+								required="true">
+								<apex:selectOptions value="{!emailTemplates}" />
+							</apex:selectList>
+						</apex:column>
+					</apex:pageBlockTable>
+
+					<apex:pageBlockButtons >
+						<apex:commandButton action="{!createNewDripSteps}" value="Create" />
+					</apex:pageBlockButtons>
+
+				</apex:pageBlock>
+			</apex:form>
+		</apex:outputPanel>
+	</apex:outputPanel>
+</apex:page>

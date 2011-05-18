@@ -1,0 +1,162 @@
+<apex:page standardcontroller="contact">
+	<!-- -------------------------------------------------------------------------------------------------------------
+Written by John Fine, copyright (c) 2010 Groundwire, 1402 3rd Avenue, Suite 1000, Seattle, WA 98101
+This program is released under the GNU General Public License. http://www.gnu.org/licenses/
+
+VF Form field validation using javascript.  Uses the jQuery library and jQuery validation plugin.
+See http://docs.jquery.com/Plugins/Validation/Methods under 'Methods' for documentation of the available validation methods
+The libraries' source code lives at:
+     http://jquery.com/ and http://bassistance.de/jquery-plugins/jquery-plugin-validation/
+     
+     To test the features of this form:
+     * Click submit without filling out any fields.
+     * Enter a name less than 5 characters long and tab out of the field.
+     * Enter an email with invalid syntax.
+     * Enter a non-integer department # or one less than 100.
+     * With some fields left invalid, Submit the form and see the 'invalid' message and note that the form is not submitted.
+     * With all fields valid, submit the form to see that a Contact is created. 
+     
+*** WHEN THIS PAGE IS USEFUL ***
+1. Your client wants a web form that integrates with SF on their website, or you want advanced validation on a VF page.
+2. You want to provide field validation that VF tags don't provide (like numeric, email, min length).
+3. The client can live with having the form on its own webpage, rather than iFramed as part of a complex webpage (for that see the iFrame version of this template)
+       
+*** HOW TO USE THIS PAGE: ***
+1. Deploy the static resources 'Validation Library' from 1DEV to your client sandbox instance. 
+2. Create your new VF page in the client sandbox.
+3. Copy and paste this whole page's source code into your new VF page.
+4. Change the sample fields and add fields as you need.
+5. Change the names of the form and fields in the javascript code below.  The comments will tell you how - read them all.
+6. Create a Sites page that exposes your VF page.  Remember to turn field level security on - it defaults to off and causes fields to be invisible! 
+7. Test by visiting the Sites page in your browser, not logged in to SF.
+8. Ask the client to build a landing page on their website and provide you with its URL, which you drop into the retURL setting on this page.
+9. Once testing is complete and you deploy, remember to provide the client with the new Sites page URL to the production instance. 
+     
+----------------------------------------------------------------------------------------------------------------- -->
+
+	<apex:includeScript value="{!URLFOR($Resource.Validation_Library, 'jquery-1.4.2.min.js')}" />
+	<apex:includeScript value="{!URLFOR($Resource.Validation_Library, 'jquery.validate.min.js')}" />
+
+	<script type="text/javascript">
+
+jQuery(function() {
+    // PLUMBING: Just leave this stuff in place.  Helps jQuery play nicely with SalesForce's own javascript.
+    $.noConflict();
+    
+    function escape_id(raw_id) {
+        return raw_id.replace(/(:|\.)/g,'\\\$1');
+    }
+
+    // NAMING: 'testform' is the ID of the form (specified in the form tag in the sample at page bottom)
+    // 'attend' and 'principalemail' are the id's of the form's two fields.
+    // You need 1 line here to name the form, then 1 line to name each field you want to validate.
+    // ***MAKE CHANGES HERE *** 
+    var form_id = "{!$Component.testform}";
+    var name_id = "{!$Component.testform.name}";
+    var email_id = "{!$Component.testform.email}";
+    var department_id = "{!$Component.testform.department}";
+    
+    // ERROR HANDLING: The # of invalid fields is stored in this element (see the tag in the sample at bottom). 
+    // ***CHANGE FORMNAME HERE *** 
+    var invalidcount_id = "{!$Component.testform.invalidcount}";
+    
+    // STYLING: # of invalid fields is given a style class here (see style 'invalidstyle' below).
+    // *** NO CHANGES HERE *** 
+    jQuery('#' + escape_id(invalidcount_id)).addClass("invalidstyle");
+        
+    // FORM VALIDATION: gotta have this section before the field rules for validation to work.
+    // If you don't need a page element that displays the # of invalid fields, then you can remove everything inside the validate() function call.
+    // The element that displays the count of invalid fields (called 'invalidcount_id here) must be named inside the validate function below.
+    // *** MAKE CHANGES HERE *** only if you need to rename the invalidcount element or the form element
+    jQuery('#' + escape_id(form_id)).validate({
+        invalidHandler: function(e, validator) {
+            jQuery('#' + escape_id(invalidcount_id)).text(validator.numberOfInvalids() + " field(s) are invalid");
+        }
+    });
+
+    // FIELD VALIDATION: one call to 'jQuery().rules' for each field for which you want to use validation rules.
+    // Note the field name, associated in the NAMING section above with a field id, used in each jQuery call. 
+    // Formatting of error msgs is defined by the style class below called 'label.error'
+    // Documentation for validation rules that are available: http://docs.jquery.com/Plugins/Validation#List_of_built-in_Validation_methods 
+    // *** MAKE CHANGES HERE *** 
+    jQuery('#' + escape_id(name_id)).rules("add",{
+        required:true,
+        minlength:5,
+        messages: {
+            minlength:"Your name must be at least 5 characters."
+        }
+    });
+    jQuery('#' + escape_id(email_id)).rules("add",{
+        email:true,
+        required:true,
+        messages: {
+            email:"Groundwire says: The format for an email is a@b.c",
+            required:"We REALLY need your email to start the engagement process"
+        }
+    });
+    jQuery('#' + escape_id(department_id)).rules("add",{
+        number:true,
+        min:100,
+        // Using jQuery's default 'required' error message here
+        required:true,
+        messages:{
+            number:"Please enter only a number - in our org, departments don't have letters'",
+            min:"Sorry, there are no departments with #'s lower than 100."
+        }
+    });
+});
+</script>
+
+	<!-- label.error and input.error are assigned to OutputText and InputText elements automatically by jQuery when an input error occurs. -->
+	<!-- Change these styles to change the style of the field by field error messages. -->
+	<style>
+label {
+	font-size: 11px;
+	width: 100%;
+	float: left;
+}
+
+label.error {
+	color: red;
+	font-size: 10px;
+	width: 100%;
+	line-height: 20px;
+	padding: 0 5px;
+	float: left;
+}
+
+input.error {
+	border: 2px solid red;
+}
+
+.invalidstyle {
+	font-weight: bold;
+	color: red;
+	font-size: 14px;
+	padding: 10px;
+}
+</style>
+
+	<!--  Demo form below, showing fields which are validated by rules above, and invalid field count -->
+	<!-- *** MAKE CHANGES HERE - name the form to match the naming above in javascript -->
+	<apex:form id="testform">
+
+		<!-- REQUIRED - this field displays the number of invalid fields, if there are any, upon attempting to submit a form that has errors-->
+		<apex:outputtext id="invalidcount" />
+
+		<apex:panelGrid columns="2" cellpadding="2">
+			<apex:outputText value="Last Name: " />
+			<apex:InputText id="name" value="{!contact.lastname}"
+				style="width:300px" />
+
+			<apex:outputText value="Email: " />
+			<apex:InputText id="email" value="{!contact.email}"
+				style="width:300px" />
+
+			<apex:outputText value="Department #: " />
+			<apex:inputText id="department" value="{!contact.department}"
+				style="width:300px" />
+		</apex:panelGrid>
+		<apex:commandButton action="{!save}" value="Submit" id="theButton" />
+	</apex:form>
+</apex:page>

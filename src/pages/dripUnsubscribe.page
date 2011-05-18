@@ -1,0 +1,32 @@
+<apex:page standardController="Campaign"
+	extensions="ONEN_EXT_Drip_Unsubscribe"
+	title="Unsubscribe a Contact from Drip Campaign" tabStyle="Campaign">
+	<apex:form >
+		<apex:sectionHeader title="Search Contacts"
+			subtitle="Find a Contact to Unsubscribe" />
+		<apex:pageBlock title="Search for a Contact" mode="edit">
+			<apex:outputPanel id="conError">
+				<apex:outputPanel style="color:red" rendered="{!conNotInCampaign}">
+					<p>There is no contact with that name or email address in this
+					drip campaign.</p>
+				</apex:outputPanel>
+			</apex:outputPanel>
+			<apex:panelGrid >
+				<apex:outputText value="Enter Email Address: " />
+				<apex:inputText value="{!contactEmail}" />
+				<apex:outputText value="Or Search by Contact Name: " />
+				<apex:inputField value="{!event.Contact__c}" required="false" />
+				<br />
+			</apex:panelGrid>
+			<apex:pageBlockSection title="Advanced Settings">
+				<apex:panelGrid columns="2" title="Advanced Settings">
+					<apex:inputCheckbox value="{!globalUnsub}" />&nbsp;Opt Out of All Email
+					<apex:inputCheckbox value="{!removeFromCampaign}" />&nbsp;Remove Contact from Campaign
+				</apex:panelGrid>
+			</apex:pageBlockSection>
+			<apex:pageBlockButtons >
+				<apex:commandButton action="{!Unsubscribe}" value="Unsubscribe" />
+			</apex:pageBlockButtons>
+		</apex:pageBlock>
+	</apex:form>
+</apex:page>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <customSettingsType>Hierarchy</customSettingsType>
+    <customSettingsVisibility>Public</customSettingsVisibility>
+    <enableFeeds>false</enableFeeds>
+    <fields>
+        <fullName>Clipping_Content_Field_Id__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Copy the Id of these Clipping fields and paste in the form. To get clipping field IDs, go to Setup | App Setup | Create | Objects | Clipping | in the Custom Fields &amp; Relationships section click a field, i.e. Clipping Content | in its URL, copy the number</inlineHelpText>
+        <label>Clipping Content Field Id</label>
+        <length>22</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Clipping_URL_Field_Id__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Copy the Id of these Clipping fields and paste in the form. To get clipping field IDs, go to Setup | App Setup | Create | Objects | Clipping | in the Custom Fields &amp; Relationships section click a field, i.e. Clipping Content | in its URL, copy the number</inlineHelpText>
+        <label>Clipping URL Field Id</label>
+        <length>22</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Clippings_Object_Code__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>In a new browser tab or window, go to the Clippings tab. Copy the Clippings tab 3-character object code that is visible in its URL and paste in the form: Example: If your Clippings tab URL is http://na5.salesforce.com/a0J/o , its object code is a0J</inlineHelpText>
+        <label>Clippings Object Code</label>
+        <length>3</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Salesforce_Server_Instance_URL__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Copy the server name of your Salesforce pages from the URL and paste in the form below. Example: If your URL when logged in to Salesforce is http://na5.salesforce.com , your server name is na5</inlineHelpText>
+        <label>Salesforce Server Instance URL</label>
+        <required>false</required>
+        <type>Url</type>
+    </fields>
+    <label>Clippings Settings</label>
+</CustomObject>

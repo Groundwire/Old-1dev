@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <actionOverrides>
+        <actionName>Accept</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Clone</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Delete</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Edit</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>List</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>New</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Tab</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>View</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <deploymentStatus>Deployed</deploymentStatus>
+    <description>Track media mentions in Salesforce.com</description>
+    <enableActivities>false</enableActivities>
+    <enableEnhancedLookup>false</enableEnhancedLookup>
+    <enableFeeds>false</enableFeeds>
+    <enableHistory>false</enableHistory>
+    <enableReports>true</enableReports>
+    <fields>
+        <fullName>Author__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Look up the Contact who authored this clipping</inlineHelpText>
+        <label>Author</label>
+        <referenceTo>Contact</referenceTo>
+        <relationshipLabel>Clippings</relationshipLabel>
+        <relationshipName>Clippings</relationshipName>
+        <type>Lookup</type>
+    </fields>
+    <fields>
+        <fullName>Campaign__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Campaign this clipping is related to</inlineHelpText>
+        <label>Campaign</label>
+        <referenceTo>Campaign</referenceTo>
+        <relationshipLabel>Clippings</relationshipLabel>
+        <relationshipName>Clippings</relationshipName>
+        <type>Lookup</type>
+    </fields>
+    <fields>
+        <fullName>Clipping_Content__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Content blurb from the clipping</inlineHelpText>
+        <label>Clipping Content</label>
+        <length>32000</length>
+        <type>LongTextArea</type>
+        <visibleLines>6</visibleLines>
+    </fields>
+    <fields>
+        <fullName>Clipping_URL__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Web location (URL) where this clipping was found</inlineHelpText>
+        <label>Clipping URL</label>
+        <required>false</required>
+        <type>Url</type>
+    </fields>
+    <fields>
+        <fullName>Filing_Location__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Physical filing location if not an online clipping</inlineHelpText>
+        <label>Filing Location</label>
+        <length>255</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Issue_Interests__c</fullName>
+        <description>Keep this picklist consistent with issue interests picklists elsewhere</description>
+        <externalId>false</externalId>
+        <inlineHelpText>Issues that this clipping relates to</inlineHelpText>
+        <label>Issue Interests</label>
+        <picklist>
+            <picklistValues>
+                <fullName>Issue 1</fullName>
+                <default>false</default>
+            </picklistValues>
+            <sorted>false</sorted>
+        </picklist>
+        <type>MultiselectPicklist</type>
+        <visibleLines>10</visibleLines>
+    </fields>
+    <fields>
+        <fullName>Letter_to_Editor__c</fullName>
+        <defaultValue>false</defaultValue>
+        <externalId>false</externalId>
+        <inlineHelpText>Is this clipping a letter to the editor?</inlineHelpText>
+        <label>Letter to Editor</label>
+        <type>Checkbox</type>
+    </fields>
+    <fields>
+        <fullName>Permission__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Select the level of permission granted by Author and/or Publisher (as appropriate) to quote, re-print, etc.  Paste permission details into Notes &amp; Attachments, using the New Note button.</inlineHelpText>
+        <label>Permission?</label>
+        <picklist>
+            <picklistValues>
+                <fullName>None</fullName>
+                <default>true</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Limited</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Unlimited</fullName>
+                <default>false</default>
+            </picklistValues>
+            <sorted>false</sorted>
+        </picklist>
+        <type>Picklist</type>
+    </fields>
+    <fields>
+        <fullName>Publish_Date__c</fullName>
+        <defaultValue>Today()</defaultValue>
+        <externalId>false</externalId>
+        <inlineHelpText>Date this clipping was published</inlineHelpText>
+        <label>Publish Date</label>
+        <required>false</required>
+        <type>Date</type>
+    </fields>
+    <fields>
+        <fullName>Publisher__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Look up the Organization that published this clipping</inlineHelpText>
+        <label>Publisher</label>
+        <referenceTo>Account</referenceTo>
+        <relationshipLabel>Clippings</relationshipLabel>
+        <relationshipName>Clippings</relationshipName>
+        <type>Lookup</type>
+    </fields>
+    <fields>
+        <fullName>Video__c</fullName>
+        <defaultValue>false</defaultValue>
+        <externalId>false</externalId>
+        <inlineHelpText>Is this clipping (or does it include) video?</inlineHelpText>
+        <label>Video</label>
+        <type>Checkbox</type>
+    </fields>
+    <label>Clipping</label>
+    <listViews>
+        <fullName>All</fullName>
+        <columns>NAME</columns>
+        <columns>Clipping_URL__c</columns>
+        <columns>Publish_Date__c</columns>
+        <columns>Issue_Interests__c</columns>
+        <columns>Publisher__c</columns>
+        <columns>Campaign__c</columns>
+        <columns>Author__c</columns>
+        <columns>Letter_to_Editor__c</columns>
+        <columns>Video__c</columns>
+        <filterScope>Everything</filterScope>
+        <label>All</label>
+    </listViews>
+    <listViews>
+        <fullName>ThisWeeksClippings</fullName>
+        <columns>NAME</columns>
+        <columns>Clipping_URL__c</columns>
+        <columns>Clipping_Content__c</columns>
+        <columns>Letter_to_Editor__c</columns>
+        <columns>Video__c</columns>
+        <filterScope>Everything</filterScope>
+        <filters>
+            <field>CREATED_DATE</field>
+            <operation>equals</operation>
+            <value>THIS_WEEK,LAST_WEEK</value>
+        </filters>
+        <label>This Week&apos;s Clippings</label>
+    </listViews>
+    <nameField>
+        <label>Clipping Title</label>
+        <type>Text</type>
+    </nameField>
+    <pluralLabel>Clippings</pluralLabel>
+    <searchLayouts>
+        <customTabListAdditionalFields>Publish_Date__c</customTabListAdditionalFields>
+        <customTabListAdditionalFields>Clipping_URL__c</customTabListAdditionalFields>
+        <customTabListAdditionalFields>Issue_Interests__c</customTabListAdditionalFields>
+        <customTabListAdditionalFields>Author__c</customTabListAdditionalFields>
+        <customTabListAdditionalFields>Publisher__c</customTabListAdditionalFields>
+        <customTabListAdditionalFields>Campaign__c</customTabListAdditionalFields>
+        <customTabListAdditionalFields>Letter_to_Editor__c</customTabListAdditionalFields>
+        <customTabListAdditionalFields>Video__c</customTabListAdditionalFields>
+    </searchLayouts>
+    <sharingModel>ReadWrite</sharingModel>
+</CustomObject>

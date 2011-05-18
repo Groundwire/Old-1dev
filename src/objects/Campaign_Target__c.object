@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <actionOverrides>
+        <actionName>Accept</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Clone</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Delete</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Edit</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>List</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>New</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Tab</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>View</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <deploymentStatus>Deployed</deploymentStatus>
+    <enableActivities>false</enableActivities>
+    <enableFeeds>false</enableFeeds>
+    <enableHistory>false</enableHistory>
+    <enableReports>true</enableReports>
+    <fields>
+        <fullName>Campaign__c</fullName>
+        <externalId>false</externalId>
+        <label>Campaign</label>
+        <referenceTo>Campaign</referenceTo>
+        <relationshipLabel>Campaign Targets</relationshipLabel>
+        <relationshipName>Campaign_Target</relationshipName>
+        <relationshipOrder>0</relationshipOrder>
+        <type>MasterDetail</type>
+        <writeRequiresMasterRead>false</writeRequiresMasterRead>
+    </fields>
+    <fields>
+        <fullName>Targeted_Account__c</fullName>
+        <externalId>false</externalId>
+        <label>Targeted Organization</label>
+        <referenceTo>Account</referenceTo>
+        <relationshipLabel>Target of Campaigns</relationshipLabel>
+        <relationshipName>Campaign_Target</relationshipName>
+        <type>Lookup</type>
+    </fields>
+    <fields>
+        <fullName>Targeted_Contact__c</fullName>
+        <externalId>false</externalId>
+        <label>Targeted Contact</label>
+        <referenceTo>Contact</referenceTo>
+        <relationshipLabel>Target of Campaigns</relationshipLabel>
+        <relationshipName>Campaign_Target</relationshipName>
+        <type>Lookup</type>
+    </fields>
+    <label>Campaign Target</label>
+    <nameField>
+        <displayFormat>Target-{00000}</displayFormat>
+        <label>Campaign Target Name</label>
+        <type>AutoNumber</type>
+    </nameField>
+    <pluralLabel>Campaign Targets</pluralLabel>
+    <recordTypes>
+        <fullName>AccountTarget</fullName>
+        <active>true</active>
+        <description>When the target of the Campaign is an organization, rather than a specific person</description>
+        <label>Account Target</label>
+    </recordTypes>
+    <recordTypes>
+        <fullName>ContactTarget</fullName>
+        <active>true</active>
+        <description>When the target of the Campaign is a specific person</description>
+        <label>Contact Target</label>
+    </recordTypes>
+    <searchLayouts/>
+    <sharingModel>ControlledByParent</sharingModel>
+</CustomObject>

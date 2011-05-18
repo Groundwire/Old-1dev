@@ -1,0 +1,189 @@
+<apex:page standardController="Opportunity"
+	title="New Opportunity Wizard" tabStyle="Opportunity"
+	extensions="ONEN_CTRL_NewOppWizard">
+
+	<script>
+		//hack to override JavaScript that is setting focus on Date field
+		function setFocusOnLoad() {}  
+	</script>
+
+	<apex:outputPanel >
+		<apex:sectionHeader title="New Opportunity Wizard"
+			subtitle="Create new Opportunity" />
+		<apex:pageMessages />
+		<apex:form >
+			<apex:pageBlock title="Contact and Organization" mode="edit">
+
+				<apex:pageBlockSection showHeader="false" id="testSection"
+					columns="1">
+					<apex:pageBlockSectionItem dataStyle="padding-bottom:5px">
+						<apex:outputLabel value="Apply Opportunity To"
+							for="oppApplicantSelect" style="font-weight:bold" />
+						<apex:selectRadio id="oppApplicantSelect" value="{!oppApplicant}">
+							<apex:selectOption itemValue="Contact" itemLabel="Contact" />
+							<apex:selectOption itemValue="Organization"
+								itemLabel="Organization" />
+							<apex:actionSupport event="onchange"
+								action="{!resetRecordTypeArray}"
+								rerender="orgError,MonthlyDonorDetailPanel,monthlyDonorCheckboxPanel1,orgSection,rectypeSection,OpenOppsPanel"
+								status="status" />
+						</apex:selectRadio>
+					</apex:pageBlockSectionItem>
+
+					<apex:outputLabel value="  " />
+
+					<apex:pageBlockSectionItem >
+						<apex:outputLabel value="Primary Contact" for="contactField"
+							style="font-weight:bold" />
+						<apex:inputField id="contactField"
+							value="{!contactRole.ContactId}" required="false">
+							<apex:actionSupport event="onchange" action="{!getOpenOpps}"
+								rerender="OpenOppsPanel,orgError" />
+							<apex:actionSupport event="onblur" rerender="testSection" />
+						</apex:inputField>
+					</apex:pageBlockSectionItem>
+
+					<apex:pageBlockSectionItem >
+						<apex:outputLabel value=" " />
+						<apex:outputPanel style="color:red">
+							<apex:actionStatus startText="Working..." id="status" />
+						</apex:outputPanel>
+					</apex:pageBlockSectionItem>
+
+					<apex:pageBlockSectionItem >
+						<apex:outputLabel value=" " />
+						<apex:outputPanel id="orgError">
+							<apex:outputPanel style="color:red"
+								rendered="{!errorMessageText!=null}">
+								<p>{!errorMessageText}</p>
+							</apex:outputPanel>
+						</apex:outputPanel>
+					</apex:pageBlockSectionItem>
+
+				</apex:pageBlockSection>
+
+				<apex:outputPanel id="orgSection">
+					<apex:pageBlockSection showHeader="false"
+						rendered="{!oppApplicant == 'Organization'}">
+						<apex:pageBlockSectionItem dataStyle="padding-bottom:8px">
+							<apex:outputLabel value="Organization" for="accountField"
+								style="font-weight:bold" />
+							<apex:inputField id="accountField"
+								value="{!opportunity.AccountId}">
+								<apex:actionSupport event="onchange" action="{!getOpenOpps}"
+									rerender="OpenOppsPanel" />
+								<apex:actionSupport event="onblur" rerender="orgSection" />
+							</apex:inputField>
+						</apex:pageBlockSectionItem>
+					</apex:pageBlockSection>
+				</apex:outputPanel>
+
+				<apex:pageBlockSection showHeader="false" id="rectypeSection"
+					columns="1">
+					<apex:pageBlockSectionItem dataStyle="padding-bottom:3px">
+						<apex:outputLabel value="Record Type" for="oppRecordType"
+							style="font-weight:bold" />
+						<apex:selectList size="1" id="oppRecordType"
+							value="{!oppRecordTypeId}">
+							<apex:selectOptions value="{!recordTypeNameList}" />
+							<apex:actionSupport event="onchange"
+								action="{!resetRecordTypeArray}"
+								rerender="monthlyDonorCheckboxPanel1" status="status" />
+						</apex:selectList>
+					</apex:pageBlockSectionItem>
+					<apex:pageBlockSectionItem dataStyle="padding-bottom:3px">
+						<apex:outputLabel value="Close Date" for="closeDate"
+							style="font-weight:bold" />
+						<apex:inputField id="closeDate" value="{!opportunity.CloseDate}"
+							required="false" />
+					</apex:pageBlockSectionItem>
+				</apex:pageBlockSection>
+
+				<apex:outputPanel id="monthlyDonorCheckboxPanel1">
+					<apex:pageBlockSection showHeader="false" columns="1"
+						rendered="{!oppApplicant == 'Contact'}">
+						<apex:pageBlockSectionItem dataStyle="padding-bottom:10px">
+							<apex:outputLabel value="Monthly Gift" for="MonthlyGiftCheckbox"
+								style="font-weight:bold" />
+							<apex:inputField id="MonthlyGiftCheckbox"
+								value="{!opportunity.Monthly_Gift__c}">
+								<apex:actionSupport event="onchange"
+									rerender="MonthlyDonorDetailPanel" />
+							</apex:inputField>
+						</apex:pageBlockSectionItem>
+					</apex:pageBlockSection>
+				</apex:outputPanel>
+
+				<apex:outputPanel id="MonthlyDonorDetailPanel">
+					<apex:pageBlockSection title="Monthly Gift Information"
+						collapsible="false"
+						rendered="{!opportunity.Monthly_Gift__c && oppApplicant == 'Contact'}"
+						columns="1">
+						<apex:pageBlockSectionItem dataStyle="padding-bottom:4px;padding-top:4px">
+							<apex:outputLabel value="Date of First Payment"
+								for="paymentReceivedDate" style="font-weight:bold" />
+							<apex:inputField id="paymentReceivedDate"
+								value="{!bogusOpp.CloseDate}"
+								required="{!opportunity.Monthly_Gift__c}" />
+						</apex:pageBlockSectionItem>
+						<apex:pageBlockSectionItem dataStyle="padding-bottom:4px">
+							<apex:outputLabel value="Monthly Gift Amount" for="paymentAmount"
+								style="font-weight:bold" />
+							<apex:inputField id="paymentAmount"
+								value="{!opportunity.Monthly_Gift_Amount__c}"
+								required="{!opportunity.Monthly_Gift__c}" />
+						</apex:pageBlockSectionItem>
+						<apex:pageBlockSectionItem dataStyle="padding-bottom:4px">
+							<apex:outputLabel value="First Payment Received?"
+								for="paymentReceived" style="font-weight:bold" />
+							<apex:inputCheckbox id="paymentReceived"
+								value="{!paymentReceived}" />
+						</apex:pageBlockSectionItem>
+						<apex:pageBlockSectionItem dataStyle="padding-bottom:8px">
+							<apex:outputLabel value="Form of Payment" for="formOfPayment"
+								style="font-weight:bold" />
+							<apex:inputField id="formOfPayment" value="{!opportunity.Type}" />
+						</apex:pageBlockSectionItem>
+					</apex:pageBlockSection>
+				</apex:outputPanel>
+
+				<apex:pageBlockButtons >
+					<apex:commandButton action="{!save}"
+						value="Create & Edit Opportunity"
+						rerender="orgError,MonthlyDonorDetailPanel" />
+					<apex:commandButton action="{!cancel}" value="Cancel" />
+				</apex:pageBlockButtons>
+
+			</apex:pageBlock>
+		</apex:form>
+	</apex:outputPanel>
+
+	<apex:outputPanel id="OpenOppsPanel">
+		<apex:pageBlock title="Unpaid Opportunities for this {!oppApplicant}">
+			<apex:pageBlockTable value="{!openOppList}" var="opp">
+				<apex:column >
+					<apex:facet name="header">Action</apex:facet>
+					<apex:outputLink value="/{!opp.id}/e?retURL={!$CurrentPage.URL}">Edit</apex:outputLink>
+				</apex:column>
+				<apex:column >
+					<apex:facet name="header">Opportunity</apex:facet>
+					<apex:outputLink value="/{!opp.id}">{!opp.Name}</apex:outputLink>
+				</apex:column>
+				<apex:column value="{!opp.RecordTypeId}" />
+				<apex:column value="{!opp.CloseDate}" />
+				<apex:column value="{!opp.StageName}" />
+				<apex:column value="{!opp.amount}" />
+				<apex:column value="{!opp.Total_Unpaid__c}" />
+				<apex:column value="{!opp.Next_Payment_Due_Date__c}" />
+				<apex:column value="{!opp.CampaignId}" />
+			</apex:pageBlockTable>
+			<!-- 
+		        <apex:pageBlockButtons >
+					<apex:commandButton action="{!continueToCreate}" value="Create a new Opportunity" />		
+				</apex:pageBlockButtons>
+		         -->
+		</apex:pageBlock>
+
+	</apex:outputPanel>
+
+</apex:page>

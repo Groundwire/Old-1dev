@@ -1,0 +1,760 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <enableFeeds>false</enableFeeds>
+    <fields>
+        <fullName>Campaign_Sub_Type__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Specific campaign categories associated with general campaign types</inlineHelpText>
+        <label>Campaign Sub-Type</label>
+        <picklist>
+            <controllingField>Type</controllingField>
+            <picklistValues>
+                <fullName>Auction</fullName>
+                <controllingFieldValues>Event</controllingFieldValues>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Conference Call</fullName>
+                <controllingFieldValues>Communication</controllingFieldValues>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Email</fullName>
+                <controllingFieldValues>Communication</controllingFieldValues>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Email to Official</fullName>
+                <controllingFieldValues>Action</controllingFieldValues>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Fundraiser</fullName>
+                <controllingFieldValues>Event</controllingFieldValues>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Holiday Appeal</fullName>
+                <controllingFieldValues>Appeal</controllingFieldValues>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>House Party</fullName>
+                <controllingFieldValues>Event</controllingFieldValues>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Letter to Editor</fullName>
+                <controllingFieldValues>Action</controllingFieldValues>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Letter to Official</fullName>
+                <controllingFieldValues>Action</controllingFieldValues>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Lobby Day</fullName>
+                <controllingFieldValues>Action</controllingFieldValues>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Meeting with Official</fullName>
+                <controllingFieldValues>Action</controllingFieldValues>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Phone Banking</fullName>
+                <controllingFieldValues>Action</controllingFieldValues>
+                <controllingFieldValues>Appeal</controllingFieldValues>
+                <controllingFieldValues>Other</controllingFieldValues>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Phoned Official</fullName>
+                <controllingFieldValues>Action</controllingFieldValues>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Public Meeting</fullName>
+                <controllingFieldValues>Action</controllingFieldValues>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Renewal Appeal</fullName>
+                <controllingFieldValues>Appeal</controllingFieldValues>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Tabling</fullName>
+                <controllingFieldValues>Action</controllingFieldValues>
+                <controllingFieldValues>Other</controllingFieldValues>
+                <default>false</default>
+            </picklistValues>
+            <sorted>false</sorted>
+        </picklist>
+        <type>Picklist</type>
+    </fields>
+    <fields>
+        <fullName>Donation_Page_URL__c</fullName>
+        <externalId>false</externalId>
+        <formula>HYPERLINK(&apos;/apex/cmpgn?Id&apos; , &apos;Donation Page&apos; )</formula>
+        <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+        <label>Donation Page URL</label>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Effective_Number_Sent__c</fullName>
+        <description>If user enters a number sent, it&apos;ll use that - otherwise, defaults to total contacts + leads</description>
+        <externalId>false</externalId>
+        <formula>IF (  NumberSent &gt; 0 , NumberSent ,  NumberOfContacts +  NumberOfLeads )</formula>
+        <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+        <label>Effective Number Sent</label>
+        <precision>18</precision>
+        <required>false</required>
+        <scale>0</scale>
+        <type>Number</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Engagement_Level_Numeric__c</fullName>
+        <externalId>false</externalId>
+        <formula>VALUE(LEFT(TEXT( Leadership_Level__c ),1))</formula>
+        <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+        <label>Campaign Engagement Level Numeric</label>
+        <precision>18</precision>
+        <required>false</required>
+        <scale>0</scale>
+        <type>Number</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Leadership_Level__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Level of leadership: 1-organizing, 2-consistent leader, 3-inconsistent leader, 4-activist, 5-donor/member</inlineHelpText>
+        <label>Campaign Engagement Level</label>
+        <picklist>
+            <picklistValues>
+                <fullName>1 - Observing</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>2 - Following</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>3 - Endorsing</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>4 - Contributing</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>5 - Owning</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>6 - Leading</fullName>
+                <default>false</default>
+            </picklistValues>
+            <sorted>false</sorted>
+        </picklist>
+        <type>Picklist</type>
+    </fields>
+    <fields>
+        <fullName>Net_Revenue__c</fullName>
+        <description>Total $ won minus costs</description>
+        <externalId>false</externalId>
+        <formula>AmountWonOpportunities  -  ActualCost</formula>
+        <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+        <label>Net Revenue</label>
+        <precision>18</precision>
+        <required>false</required>
+        <scale>2</scale>
+        <type>Currency</type>
+    </fields>
+    <fields>
+        <fullName>Number_of_Drip_Steps__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Number of Drip Emails (Steps) in the series.</inlineHelpText>
+        <label>Number of Drip Steps</label>
+        <summaryForeignKey>Drip_Step__c.Campaign__c</summaryForeignKey>
+        <summaryOperation>count</summaryOperation>
+        <type>Summary</type>
+    </fields>
+    <fields>
+        <fullName>Outcome__c</fullName>
+        <externalId>false</externalId>
+        <label>Outcome</label>
+        <referenceTo>Outcome__c</referenceTo>
+        <relationshipLabel>Campaigns</relationshipLabel>
+        <relationshipName>Campaigns</relationshipName>
+        <type>Lookup</type>
+    </fields>
+    <fields>
+        <fullName>Parent_Campaign_Group__c</fullName>
+        <externalId>false</externalId>
+        <formula>IF (  ParentId=&quot;&quot; ,  Name ,  Parent.Name )</formula>
+        <label>Parent Campaign Group</label>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Parent_Campaign_Start_Date__c</fullName>
+        <description>if campaign has a parent, start date of it, otherwise start date of this</description>
+        <externalId>false</externalId>
+        <formula>IF ( ParentId=&quot;&quot; ,   StartDate , Parent.StartDate )</formula>
+        <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+        <label>Parent Campaign Start Date</label>
+        <required>false</required>
+        <type>Date</type>
+    </fields>
+    <fields>
+        <fullName>Status</fullName>
+        <picklist>
+            <picklistValues>
+                <fullName>Planned</fullName>
+                <default>true</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>In Progress</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Completed</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Aborted</fullName>
+                <default>false</default>
+            </picklistValues>
+            <sorted>false</sorted>
+        </picklist>
+        <type>Picklist</type>
+    </fields>
+    <fields>
+        <fullName>Total_Email_Sends__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Total number of drip emails scheduled or sent in this email series.</inlineHelpText>
+        <label>Total Email Sends</label>
+        <summaryFilterItems>
+            <field>Drip_Event__c.Active__c</field>
+            <operation>equals</operation>
+            <value>True</value>
+        </summaryFilterItems>
+        <summaryForeignKey>Drip_Event__c.Campaign__c</summaryForeignKey>
+        <summaryOperation>count</summaryOperation>
+        <type>Summary</type>
+    </fields>
+    <fields>
+        <fullName>Total_Emails_Scheduled__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Total number of drip emails scheduled (not sent).</inlineHelpText>
+        <label>Total Emails Scheduled</label>
+        <summaryFilterItems>
+            <field>Drip_Event__c.Completed_Date__c</field>
+            <operation>equals</operation>
+            <value></value>
+        </summaryFilterItems>
+        <summaryFilterItems>
+            <field>Drip_Event__c.Active__c</field>
+            <operation>equals</operation>
+            <value>True</value>
+        </summaryFilterItems>
+        <summaryForeignKey>Drip_Event__c.Campaign__c</summaryForeignKey>
+        <summaryOperation>count</summaryOperation>
+        <type>Summary</type>
+    </fields>
+    <fields>
+        <fullName>Total_Emails_Sent__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Total number of emails in this drip campaign that have already been sent.</inlineHelpText>
+        <label>Total Emails Sent</label>
+        <summaryFilterItems>
+            <field>Drip_Event__c.Completed_Date__c</field>
+            <operation>notEqual</operation>
+            <value></value>
+        </summaryFilterItems>
+        <summaryForeignKey>Drip_Event__c.Campaign__c</summaryForeignKey>
+        <summaryOperation>count</summaryOperation>
+        <type>Summary</type>
+    </fields>
+    <fields>
+        <fullName>Type</fullName>
+        <picklist>
+            <picklistValues>
+                <fullName>Action</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Appeal</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Communication</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Event</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Strategic Campaign</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Other</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Drip Campaign</fullName>
+                <default>false</default>
+            </picklistValues>
+            <sorted>false</sorted>
+        </picklist>
+        <type>Picklist</type>
+    </fields>
+    <fields>
+        <fullName>Unconverted_Leads__c</fullName>
+        <externalId>false</externalId>
+        <formula>NumberOfLeads - NumberOfConvertedLeads</formula>
+        <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+        <inlineHelpText>Leads that have not been converted into contacts.</inlineHelpText>
+        <label>Open Leads</label>
+        <precision>18</precision>
+        <required>false</required>
+        <scale>0</scale>
+        <type>Number</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Won_Percent__c</fullName>
+        <externalId>false</externalId>
+        <formula>IF ( Effective_Number_Sent__c &gt; 0 , NumberOfWonOpportunities /   Effective_Number_Sent__c  , 0 )</formula>
+        <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+        <inlineHelpText>What percent of recipients gave money in response to campaign?</inlineHelpText>
+        <label>$ Won Percent</label>
+        <precision>18</precision>
+        <required>false</required>
+        <scale>1</scale>
+        <type>Percent</type>
+    </fields>
+    <listViews>
+        <fullName>AllActiveCampaigns</fullName>
+        <columns>CAMPAIGN.NAME</columns>
+        <columns>CAMPAIGN.RECORDTYPE</columns>
+        <columns>CAMPAIGN.START_DATE</columns>
+        <columns>CAMPAIGN.NUM_CONTACTS</columns>
+        <filterScope>Everything</filterScope>
+        <filters>
+            <field>CAMPAIGN.ACTIVE</field>
+            <operation>equals</operation>
+            <value>1</value>
+        </filters>
+        <label>All Active Campaigns</label>
+    </listViews>
+    <listViews>
+        <fullName>All_With_Engagement_Level</fullName>
+        <columns>CAMPAIGN.NAME</columns>
+        <columns>Leadership_Level__c</columns>
+        <columns>Engagement_Level_Numeric__c</columns>
+        <columns>CAMPAIGN.CAMPAIGN_TYPE</columns>
+        <columns>CAMPAIGN.STATUS</columns>
+        <columns>CAMPAIGN.START_DATE</columns>
+        <columns>CAMPAIGN.END_DATE</columns>
+        <filterScope>Everything</filterScope>
+        <filters>
+            <field>Leadership_Level__c</field>
+            <operation>notEqual</operation>
+        </filters>
+        <label>All With Engagement Level</label>
+    </listViews>
+    <listViews>
+        <fullName>MyActiveCampaigns</fullName>
+        <filterScope>Mine</filterScope>
+        <filters>
+            <field>CAMPAIGN.ACTIVE</field>
+            <operation>equals</operation>
+            <value>1</value>
+        </filters>
+        <label>My Active Campaigns</label>
+    </listViews>
+    <recordTypes>
+        <fullName>Campaign</fullName>
+        <active>true</active>
+        <description>For every outreach campaign EXCEPT automated email drip campaigns</description>
+        <label>Campaign</label>
+        <picklistValues>
+            <picklist>Campaign_Sub_Type__c</picklist>
+            <values>
+                <fullName>Auction</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Conference Call</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Email</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Email to Official</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Fundraiser</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Holiday Appeal</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>House Party</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Letter to Editor</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Letter to Official</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Lobby Day</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Meeting with Official</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Phone Banking</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Phoned Official</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Public Meeting</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Renewal Appeal</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Tabling</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Leadership_Level__c</picklist>
+            <values>
+                <fullName>1 - Observing</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>2 - Following</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>3 - Endorsing</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>4 - Contributing</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>5 - Owning</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>6 - Leading</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Status</picklist>
+            <values>
+                <fullName>Aborted</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Completed</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>In Progress</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Planned</fullName>
+                <default>true</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Type</picklist>
+            <values>
+                <fullName>Action</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Appeal</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Communication</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Event</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Other</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Strategic Campaign</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+    </recordTypes>
+    <recordTypes>
+        <fullName>Drip_Campaign</fullName>
+        <active>true</active>
+        <description>For automated drip email campaigns - some configuration required</description>
+        <label>Drip Campaign</label>
+        <picklistValues>
+            <picklist>Campaign_Sub_Type__c</picklist>
+            <values>
+                <fullName>Auction</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Email</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Email to Official</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Fundraiser</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Holiday Appeal</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>House Party</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Letter to Editor</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Letter to Official</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Lobby Day</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Meeting with Official</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Phone Banking</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Phoned Official</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Public Meeting</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Renewal Appeal</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Tabling</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Leadership_Level__c</picklist>
+            <values>
+                <fullName>1 - Observing</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>2 - Following</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>3 - Endorsing</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>4 - Contributing</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>5 - Owning</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Status</picklist>
+            <values>
+                <fullName>Aborted</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Completed</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>In Progress</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Planned</fullName>
+                <default>true</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Type</picklist>
+            <values>
+                <fullName>Drip Campaign</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Other</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+    </recordTypes>
+    <webLinks>
+        <fullName>Activate_Members</fullName>
+        <availability>online</availability>
+        <displayType>button</displayType>
+        <height>600</height>
+        <linkType>url</linkType>
+        <masterLabel>Activate Members</masterLabel>
+        <openType>sidebar</openType>
+        <protected>false</protected>
+        <url>/apex/campaignToDrip?id={!Campaign.Id}</url>
+    </webLinks>
+    <webLinks>
+        <fullName>Combine_with_Another_Campaign</fullName>
+        <availability>online</availability>
+        <displayType>button</displayType>
+        <height>600</height>
+        <linkType>url</linkType>
+        <masterLabel>Combine Campaigns</masterLabel>
+        <openType>sidebar</openType>
+        <protected>false</protected>
+        <url>/apex/campaignCombiner?id={!Campaign.Id}</url>
+    </webLinks>
+    <webLinks>
+        <fullName>Configure_Email_Series</fullName>
+        <availability>online</availability>
+        <displayType>button</displayType>
+        <height>600</height>
+        <linkType>url</linkType>
+        <masterLabel>Configure Email Series</masterLabel>
+        <openType>sidebar</openType>
+        <protected>false</protected>
+        <url>/apex/configureDrip?id={!Campaign.Id}</url>
+    </webLinks>
+    <webLinks>
+        <fullName>Dedup_by_Household</fullName>
+        <availability>online</availability>
+        <displayType>link</displayType>
+        <height>600</height>
+        <linkType>url</linkType>
+        <masterLabel>Merge List - Households</masterLabel>
+        <openType>sidebar</openType>
+        <protected>false</protected>
+        <url>/apex/campaignHHDedupe?id={!Campaign.Id}</url>
+    </webLinks>
+    <webLinks>
+        <fullName>ONEN_Campaign_Member_List</fullName>
+        <availability>online</availability>
+        <displayType>link</displayType>
+        <linkType>url</linkType>
+        <masterLabel>Campaign Member List</masterLabel>
+        <openType>replace</openType>
+        <protected>false</protected>
+        <url>/00O80000002kq7u?pv0={!Campaign.Id}</url>
+    </webLinks>
+    <webLinks>
+        <fullName>Report_of_Campaign_Members</fullName>
+        <availability>online</availability>
+        <description>renamed 11/17/08 MMS</description>
+        <displayType>link</displayType>
+        <linkType>url</linkType>
+        <masterLabel>Merge List - Contacts</masterLabel>
+        <openType>replace</openType>
+        <protected>false</protected>
+        <url>/00O80000002kq7r?pv0={!Campaign.Id}</url>
+    </webLinks>
+    <webLinks>
+        <fullName>Report_of_Opportunities_with_Donor_Info</fullName>
+        <availability>online</availability>
+        <description>renamed 11/17/08 MMS</description>
+        <displayType>link</displayType>
+        <linkType>url</linkType>
+        <masterLabel>Campaign Opportunities with Donor Info</masterLabel>
+        <openType>replace</openType>
+        <protected>false</protected>
+        <url>/00O80000002kq7t?pv0={!Campaign.Name}</url>
+    </webLinks>
+    <webLinks>
+        <fullName>Unsubscribe</fullName>
+        <availability>online</availability>
+        <displayType>button</displayType>
+        <height>600</height>
+        <linkType>page</linkType>
+        <masterLabel>Unsubscribe</masterLabel>
+        <openType>sidebar</openType>
+        <page>dripUnsubscribe</page>
+        <protected>false</protected>
+    </webLinks>
+    <webLinks>
+        <fullName>ViewCampaignInfluenceReport</fullName>
+        <availability>online</availability>
+        <displayType>link</displayType>
+        <hasMenubar>false</hasMenubar>
+        <hasScrollbars>true</hasScrollbars>
+        <hasToolbar>false</hasToolbar>
+        <height>500</height>
+        <isResizable>true</isResizable>
+        <linkType>url</linkType>
+        <masterLabel>View Campaign Influence Report</masterLabel>
+        <openType>newWindow</openType>
+        <position>none</position>
+        <protected>false</protected>
+        <showsLocation>false</showsLocation>
+        <showsStatus>false</showsStatus>
+        <url>/00O?rt=117&amp;break0=CAN&amp;scope=1&amp;scopeid_lkid={!Campaign.Id}&amp;scopeid={!Campaign_Name}&amp;c=CAN&amp;c=MR&amp;c=PCS&amp;c=CFN&amp;c=RN&amp;c=ON&amp;c=OA&amp;c=OS&amp;c=OCD&amp;c=AN&amp;s=OA&amp;duel0=CAN%2CMR%2CCFN%2CRN%2CAN%2CON%2CPCS%2COS%2COCD%2COA&amp;details=yes&amp;format=t</url>
+        <width>500</width>
+    </webLinks>
+</CustomObject>

@@ -1,0 +1,59 @@
+<apex:page controller="ONEN_CTRL_CampaignToDrip"
+	title="Activate Campaign Members on Drip Campaign" tabStyle="Campaign">
+	<apex:form >
+		<apex:sectionHeader title="Activate Members"
+			subtitle="Activate new campaign members on the drip campaign." />
+		<apex:pageblock title="No New Members" rendered="{!newMemberCount==0}">
+			<p><strong>There are no members in the 'New' member
+			status to kick off on the drip series. Check back later!</strong></p>
+			<p><apex:outputLink value="/{!$CurrentPage.parameters.id}">Back to the Campaign</apex:outputLink>.</p>
+		</apex:pageblock>
+		<apex:pageBlock title="Choose a start date"
+			rendered="{!newMemberCount>0}" mode="edit">
+			<apex:panelGrid columns="2" id="theGrid">
+				<apex:outputText value="New Campaign Members: " />
+				<apex:outputText value="{!newMemberCount}" />
+				<apex:outputText value="Start Date: " />
+				<apex:inputField value="{!bogusCampaign.StartDate}" />
+			</apex:panelGrid>
+
+			<apex:pageBlockButtons >
+				<apex:commandButton action="{!addNewCampaignMembersToDrip}"
+					value="Activate Members" rerender="actionPollerSection" />
+			</apex:pageBlockButtons>
+		</apex:pageBlock>
+		<!-- 
+		<apex:pageBlock title="Scheduled Emails" rendered="{!emailScheduled}">
+			<p>This is a list of all upcoming drip emails scheduled, not just those associated with this campaign. Salesforce.com imposes a hard limit of 2000
+				emails per day from thier servers (additional emails will be queued up and sent the following day). Please note, emails sent through an external service
+				like Vertical Response do not count towards this daily limit.</p><br /> 
+			<apex:dataTable value="{!upcomingSends}" var="events" id="theTable" rowClasses="odd,even" styleClass="tableClass" cellpadding="4">
+	            <apex:column >
+	                <apex:facet name="header">Scheduled Date</apex:facet>
+	                <apex:outputText value="{!events.scheduledDateMonth}"/>/<apex:outputText value="{!events.scheduledDateDay}"/>/<apex:outputText value="{!events.scheduledDateYear}"/>
+	            </apex:column>
+	            <apex:column >
+	                <apex:facet name="header">Number of Emails Scheduled</apex:facet> 
+	                <apex:outputText value="{!events.count}"/>
+	            </apex:column>
+            </apex:dataTable>
+        </apex:pageBlock>
+        
+        <apex:pageBlock title="Scheduled Emails" rendered="{!!emailScheduled}"> 
+            <p><strong>No drip emails previously scheduled in the next 30 days.</strong></p>
+		</apex:pageBlock>
+		-->
+		<apex:outputPanel id="actionPollerSection">
+			<apex:pageBlock title="Scheduling email sends - Do not navigate from this page until the process is completed"
+				rendered="{!actionPollerEnabled}">
+				<b><apex:outputText value="Status: {!EndProcess}"
+					id="EndProcessId" /></b>
+				<apex:actionStatus startText="(Processing...)" stopText="..."
+					id="counterStatus" />
+				<apex:actionPoller enabled="{!actionPollerEnabled}"
+					action="{!incrementCounter}" interval="5" rerender="EndProcessId"
+					status="counterStatus" />
+			</apex:pageBlock>
+		</apex:outputPanel>
+	</apex:form>
+</apex:page>

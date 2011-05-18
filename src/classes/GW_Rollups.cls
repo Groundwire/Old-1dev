@@ -1,0 +1,1849 @@
+public virtual class GW_Rollups {
+/*-----------------------------------------------------------------------------------------------
+* Written by Evan Callahan, copyright (c) 2010 Groundwire
+* This program is released under the GNU General Public License. http://www.gnu.org/licenses/
+* 
+* This class calculates summary totals from detail records and saves them in parent records.
+* To use it: 
+*  1) instantiate the class, either with a list of parent objects or just their ids
+*  2) create a rollupSpec and set all its properties; call addRollup to initialize it 
+*  3) repeat step 2 for other rollups
+*  3) call runRollups
+
+ISSUES:
+need to know what kind of object it is to do the rollup - can't just pass in ids unless we
+do a query at first
+
+*-----------------------------------------------------------------------------------------------*/
+
+	// the object into which aggregate values get saved, e.g. account
+	private string parentObjName;
+	private set<id> parentRecIds;
+	private list<sobject> parentRecsInitial;
+	private list<RollupSpec> specs = new list<RollupSpec>();
+	private set<string> parentRollupFields = new set<string>();
+	
+	// constructors - pass in one or more parent object ids
+	public GW_Rollups( string parentObjName, id parentRecId ) {
+		this.parentObjName = parentObjName;
+		this.parentRecIds = new set<id> { parentRecId };
+	}
+	public GW_Rollups( string parentObjName, set<id> parentRecIds ) {
+		this.parentObjName = parentObjName;
+		this.parentRecIds = parentRecIds;
+	}
+	// or the list of objects - so they won't need to be queried again for current values
+	public GW_Rollups(  string parentObjName, list<sobject> parentRecs ) {
+		this.parentObjName = parentObjName;
+		for ( sobject obj : parentRecs ) this.parentRecIds.add( obj.id );
+		this.parentRecsInitial = parentRecs;
+	}
+
+	// this data structure defines all the parameters of a single rollup
+	public class RollupSpec {
+		
+		// the object that has the details to be rolled up, e.g. opportunity
+		public string detailObject;
+		
+		// relationship field in child table, e.g. accountId
+		public string objIdInDetailTable;
+		
+		// where clause elements, if any (not including IN or NOT IN)
+		public string filter;
+		
+		// these let you pass in sets of filter strings to include or leave out		
+		public map<string, set<string>> setFiltersIn = new map<string, set<string>>();
+		public map<string, set<string>> setFiltersNotIn = new map<string, set<string>>();
+		
+		// this maps aggregate functions to the rollup field names that summarize them
+		public map<string, string> aggregateToRollupFieldMap;		
+		
+		// if you set this, you must also set the map below
+		public string subgroup;
+		
+		// this maps each aggregate field to a map of subgroup values and the fields they summarize
+		public map<string, map<object, string>> subgroupValueToRollupFieldMap;		
+		
+		// optional having clause, to limit the subgroups
+		public string subgroupFilter;		
+
+		// these support saving a value for the highest total of all groups, such as best year
+		public string topSubgroupAggregate;
+		public string topSubgroupRollupGroupField;
+		public string topSubgroupRollupValueField;
+
+		// if you set this, each total row will include the aggregate of this special field
+		// you must override the processRollupFieldset method to process the result
+		public string specialRollupAggregate;
+		
+		// need the list of special fields we are rolling into, even though the function processes them
+		public set<string> specialRollupFields;
+
+		// map of aggregate field labels to the aggregates
+		private set<string> allFields;
+		public set<string> getAllFields() { 
+						compileMe();	
+			
+			return allFields; }
+
+		private string rollupFieldList;
+
+		// method to get list of rollup fields for soql
+		public string getRollupFieldList() {
+			return rollupFieldList;
+		}
+
+		private void compileMe() {
+						string flist = 'id';
+			allFields = new set<string>{  };	
+		
+			// regular fields
+			if (aggregateToRollupFieldMap != null)
+				for (string s : aggregateToRollupFieldMap.values())
+					addToFieldlist(flist, s); 			
+				
+			// subgroup fields
+			if (subgroupValueToRollupFieldMap != null) {
+				for ( map<object, string> smap : subgroupValueToRollupFieldMap.values() ) {
+					for ( string s : smap.values() )
+						addToFieldlist(flist, s); 			
+				}
+			}
+				
+			// top subgroup value fields
+			addToFieldlist(flist, topSubgroupRollupGroupField);
+			addToFieldlist(flist, topSubgroupRollupValueField);
+				
+			
+			// special rollup fields
+			if (specialRollupFields != null) {
+				for (string s : specialRollupFields)
+					addToFieldlist(flist, s);
+			}	
+			rollupFieldList = flist; 			
+			
+		}
+		
+		private void addToFieldlist(string flist, string s) {
+			if (s != null && !allfields.contains(s)) {			
+				allFields.add(s);
+				flist += ', ' + s;
+			}			
+		}
+	
+		// map of aggregate field labels to the aggregates
+		private map<string, string> aggregateLabelMap;		
+		public map<string, string> getAggregateLabelMap() { return aggregateLabelMap; }
+
+		// method to get list of aggregate fields for soql
+		public string getAggregateFieldList() {
+			string flist = '';
+			aggregateLabelMap = new map<string, string>();
+			allAggregates = new set<string>();
+			
+			// subgrouping field	
+			flist = addToAggregateList(flist, subgroup);				
+			
+			// regular aggregates	
+			if (aggregateToRollupFieldMap != null)
+				for (string s : aggregateToRollupFieldMap.keyset())
+					flist = addToAggregateList(flist, s);				
+
+			// subgroup aggregates
+			if (subgroupValueToRollupFieldMap != null)
+				for ( string s : subgroupValueToRollupFieldMap.keyset() )
+					flist = addToAggregateList(flist, s);				
+
+			// top subgroup value fields
+			addToAggregateList(flist, topSubgroupAggregate);				
+			
+			// special rollup fields
+			addToAggregateList(flist, specialRollupAggregate);				
+				
+			return flist.substring(1);		
+		}
+		
+		private set<string> allAggregates;
+
+		private string addToAggregatelist(string flist, string s) {
+			if (s != null && !allAggregates.contains(s)) {	
+				string label = 'AggregateField' + string.valueOf(aggregateLabelMap.size());
+				aggregateLabelMap.put(s, label);
+				allAggregates.add(s);
+				flist += ', ' + s + ' ' + label;
+			}
+			return flist;			
+		}
+	}
+
+	public set<string> getparentRollupFields() { return parentRollupFields; }
+	
+	public void addRollup ( RollupSpec spec ) {
+		specs.add(spec);
+		set<string> flist = spec.getAllFields();
+		parentRollupFields.addAll( flist  );		
+	}
+
+	public void runRollups() {
+
+		system.assert( parentRecIds != null, 'GW_Rollups: You must specify objects to roll up.' );
+		system.assert( parentObjName != null, 'GW_Rollups: You must specify objects to roll up.' );
+		system.assert( !specs.isEmpty(), 'GW_Rollups: You must add one or more rollup specifications before running rollups.' );
+		
+		// get the state of the rollup set at the beginning
+		if (parentRecsInitial == null) {
+			
+			// build the full field list for all rollup specs
+			string flist = 'id';
+			for ( string s : parentRollupFields )
+				flist += ', ' + s;
+			//flist = flist.substring(1);
+		
+			parentRecsInitial = database.query( 
+				'SELECT ' + flist + ' FROM ' + parentObjName + ' WHERE id IN : parentRecIds'); 
+		}
+		
+		// get the blank starting list to which we will add rollups
+		map<id, sobject> objMap = new map<id, sobject>();
+
+		for (sobject obj : parentRecsInitial) {
+			sobject newObj = obj.clone(true, true);
+			for ( string fld : parentRollupFields ) {
+				string ft = GW_Describe.getFieldType(parentObjName, fld);
+				boolean isNum = (ft == 'INTEGER' || ft == 'CURRENCY' || ft == 'PERCENT' || ft == 'DOUBLE');
+				system.debug (logginglevel.warn, 'the field is ' + fld);
+				system.debug (logginglevel.warn, 'the type is ' + ft);
+				
+				if (isNum) {
+					newObj.put(fld, 0);
+				} else {
+					newObj.put(fld, null);					
+				}
+			}
+			objMap.put( obj.id, newObj );
+		}
+	
+		for (RollupSpec spec : specs) {
+
+			// build the soql for the rollup
+			string soql = 'SELECT ' + spec.objIdInDetailTable + ', ' + spec.getAggregateFieldList() + 
+				' FROM ' + spec.detailObject + ' WHERE ' + spec.objIdInDetailTable + ' IN : parentRecIds';
+			if (spec.filter != null)
+				soql += ' AND ' + spec.filter;
+			/*
+			if (spec.setFiltersIn != null) {
+				for (string s : spec.setFiltersIn.keyset()) 
+					soql += ' AND ' + s + ' IN : spec.setFiltersIn.get(\'' + s + '\') ';
+			}  
+			if (spec.setFiltersNotIn != null) {
+				for (string s : spec.setFiltersNotIn.keyset())
+					set<string> notIn = spec.setFiltersNotIn.get(s); 
+					soql += ' AND ' + s + ' NOT IN : spec.setFiltersNotIn.get(\'' + s + '\')) ';
+			}  
+			*/
+			soql += ' GROUP BY ' + ((spec.subgroup == null) ? spec.objIdInDetailTable : 
+				('ROLLUP (' + spec.objIdInDetailTable + ', ' + spec.subgroup + ')'));
+			soql += ' HAVING ' + spec.objIdInDetailTable	+ ' != null ';
+			if (spec.subgroupFilter != null)
+				soql += 'AND (' + spec.subgroupFilter + ') ';
+			
+			system.debug(logginglevel.warn, 'SOQL for rollup: ' + soql);
+			
+			// query and process the rows
+			for (sobject rollupRow : database.query(soql)) {
+	
+				// get the id for this result row
+				id oid = (id)(rollupRow.get(spec.objIdInDetailTable));
+
+				// get an object to roll into
+				sObject obj = objMap.get(oid);
+				
+				// is this a subgroup or a total row?
+				string subgroupLabel = (spec.subgroup == null) ? null : 
+					 spec.aggregateLabelMap.get(spec.subgroup);
+					 
+				if (subgroupLabel != null && rollupRow.get(subgroupLabel) != null) {
+					
+					system.debug(spec.subgroup);
+					system.debug(spec.aggregateLabelMap);
+					system.debug(rollupRow);
+					object subgroupValue = rollupRow.get(subgroupLabel);
+					if (subgroupValue != null) {
+/* FOR REFERENCE:::::
+		// if you set these, you must override the processSubgroup method to process each group
+		rs.subgroup = 'Fiscal_Year(closeDate)';
+		
+		// this maps each aggregate field to a map of subgroup values and the fields that summarize them
+		rs.subgroupValueToRollupFieldMap = new map<string, map<object, string>> {
+			'SUM(Amount)' => new map<object, string> { 
+				2011 => 'OppAmountThisYear__c', 
+				2010 => 'OppAmountLastYear__c' 
+			},
+			'COUNT_DISTINCT(Id)' => new map<object, string> { 
+				2011 => 'OppsClosedThisYear__c', 
+				2010 => 'OppsClosedLastYear__c'
+			}
+		};		
+*/
+						// get each subgroup rollup aggregate
+						for (string agg : spec.subgroupValueToRollupFieldMap.keyset()) {
+							string label = spec.aggregateLabelMap.get(agg);
+							map<object, string> subgroupMap = spec.subgroupValueToRollupFieldMap.get(agg);
+							
+							// do we have this subgroup value?
+							if (subgroupMap.containsKey(subgroupValue)) {
+								string targetField = subgroupMap.get(subgroupValue);
+												
+								// set the field to the aggregate value, casting to the proper type
+								setValue(parentObjName, targetField, obj, rollupRow, label);
+							}
+						}
+					}	
+							
+				} else {
+					
+					// get each main rollup field
+					for (string agg : spec.aggregateToRollupFieldMap.keyset()) {
+						string label = spec.aggregateLabelMap.get(agg);
+						string targetField = spec.aggregateToRollupFieldMap.get(agg);
+											
+						// set the field to the aggregate value, casting to the proper type
+						setValue(parentObjName, targetField, obj, rollupRow, label);
+					}
+				}
+			}
+		}
+		
+		// remove unchanged records
+		for (sobject obj : parentRecsInitial) {
+			sobject compare = objMap.get(obj.id);
+			boolean diff = false;
+			for ( string fld : parentRollupFields ) {
+				if ( obj.get(fld) != compare.get(fld) ) {
+					diff = true;
+					break;
+				}
+			}
+			if (!diff) objMap.remove(obj.id);
+		}
+		
+		// update the rollups
+		if (!objMap.isEmpty()) 
+			update objMap.values();		
+	}
+	
+	// helper function that sets aggregate values after casting to proper type
+	void setValue(string parentObjName, string targetField, sObject obj, sObject r, string lbl) {
+		string ft = GW_Describe.getFieldType(parentObjName, targetField);
+		boolean nv = (r.get(lbl) == null);
+		 
+		if (ft == 'DATE')
+			obj.put( targetField, ((date)(r.get(lbl))));	
+		else if (ft == 'DATETIME')
+			obj.put( targetField, ((datetime)(r.get(lbl))));	
+		else if (ft == 'INTEGER')
+			obj.put( targetField, (nv ? 0 : ((integer)(r.get(lbl)))));	
+		else if (ft == 'CURRENCY' || ft == 'PERCENT' || ft == 'DOUBLE')
+			obj.put( targetField, (nv ? 0 :((decimal)(r.get(lbl)))));	
+		else if (ft == 'REFERENCE')
+			obj.put( targetField, ((id)(r.get(lbl))));
+		else if (ft == 'BOOLEAN')
+			obj.put( targetField, ((boolean)(r.get(lbl))));	
+		else obj.put( targetField, ((string)(r.get(lbl))));	
+	}
+	
+	// if you use the special rollup fieldset, you need to override this
+	virtual void processRollupFieldset() { 
+	
+		// split the special field to get the last opp id and amount
+		//string[] rcf = ((string)(r.get(specialRollupAggregate))).split(';\\|;',-4);
+		//decimal lastAmt = (rcf.size() > 1 && rcf[1] != '') ? decimal.valueOf(rcf[1]) : null;
+	
+	}
+
+	public static void rollOneAccount(id acctid) {	
+		// prepare to roll up
+		GW_Rollups gwr = new GW_Rollups( 'account', acctid );
+
+		// create a rollup spec
+		GW_Rollups.RollupSpec rs = new GW_Rollups.RollupSpec(); 
+
+		// the object that has the details to be rolled up
+		rs.detailObject = 'opportunity';
+		
+		// relationship field in child table
+		rs.objIdInDetailTable = 'accountId';
+		
+		// where clause elements
+		rs.filter = 'isWon=true AND Amount != 0 AND Amount != null AND closeDate >= LAST_N_DAYS:365';
+		
+		// these let you pass in sets of filter strings to include or leave out		
+		rs.setFiltersIn = null;
+		rs.setFiltersNotIn = new map<string, set<string>> {
+			'RecordTypeId' => (new set<string>()), //recordTypesToExcludeAccts,
+			'Type' => (new set<string>{'In Kind'} ) //oppTypesToExcludeAccts
+		};
+		
+		// this maps aggregate functions to the rollup field names that summarize them
+		rs.aggregateToRollupFieldMap = new map<string, string> {
+			'SUM(Amount)' => 'TotalOppAmount__c',
+			'AVG(Amount)' => 'AverageAmount__c',
+			'MIN(Amount)' => 'SmallestAmount__c',
+			'MAX(Amount)' => 'LargestAmount__c',
+			'MIN(CloseDate)' => 'FirstCloseDate__c',
+			'MAX(CloseDate)' => 'LastCloseDate__c',
+			'COUNT_DISTINCT(Id)' => 'NumberOfClosedOpps__c' 
+		};		
+
+		// if you set these, you must override the processSubgroup method to process each group
+		rs.subgroup = 'Fiscal_Year(closeDate)';
+		
+		// this maps each aggregate field to a map of subgroup values and the fields that summarize them
+		rs.subgroupValueToRollupFieldMap = new map<string, map<object, string>> {
+			'SUM(Amount)' => new map<object, string> { 
+				2011 => 'OppAmountThisYear__c', 
+				2010 => 'OppAmountLastYear__c' 
+			},
+			'COUNT_DISTINCT(Id)' => new map<object, string> { 
+				2011 => 'OppsClosedThisYear__c', 
+				2010 => 'OppsClosedLastYear__c'
+			}
+		};		
+
+		// optional having clause, to limit the subgroups
+		rs.subgroupFilter = 'Fiscal_Year(closeDate) = null OR Fiscal_Year(closeDate) >= 2010';		
+/*
+		// these support saving a value for the highest total of all groups, such as best year
+		rs.topSubgroupAggregate = 'SUM(Amount)';
+		rs.topSubgroupRollupGroupField = 'Best_Gift_Year__c';
+		rs.topSubgroupRollupValueField = 'Best_Gift_Year_Total__c';
+		
+		// if you set this, each total row will include the aggregate of this special field
+		// you must override the processRollupFieldset method to process the result
+		rs.specialRollupAggregate = 'MAX(CombinedRollupFieldset__c)';
+		rs.specialRollupFields = new set<string> { 'LastOppAmount__c' };
+*/
+		gwr.addRollup(rs);
+		
+//TotalMembershipOppAmount__c,NumberOfMembershipOpps__c,LastMembershipDate__c,LastMembershipAmount__c,LastMembershipLevel__c,LastMembershipOrigin__c,'
+	//	+ 'MembershipJoinDate__c,MembershipEndDate__c,LastOppAmount__c,
+		// run the rollup
+		gwr.runRollups();
+	}
+/*
+		Map<String, Schema.SObjectField> M;
+		
+		if (objName == 'Contact') {
+			fields = CON_ROLLUP_FIELDS;
+			M = Schema.SObjectType.Contact.fields.getMap();
+		} else if (objName == 'Account') {
+			fields = ACCOUNT_ROLLUP_FIELDS;
+			M = Schema.SObjectType.Account.fields.getMap();
+		} else if (objName == 'ONEN_Household__c') {
+			fields = HH_ROLLUP_FIELDS;
+			M = Schema.SObjectType.ONEN_Household__c.fields.getMap();
+		}
+		string[] fieldList = fields.split(',');
+		
+		for (string fieldName : fieldList) {
+			Schema.SObjectField fld = M.get(fieldName);
+			Schema.DescribeFieldResult R = fld.getDescribe();
+			Schema.DisplayType t= R.getType();
+			string typeStr = t.name();
+			fieldTypeMap.put (fieldName,typeStr);
+		}
+
+	void rollupAccts() {
+		// also do rollups for last N days
+		for (sobject r : 
+			[SELECT accountId, 
+		    	SUM(Amount) TotalOppAmount, COUNT_DISTINCT(Id) NumberOfClosedOpps
+		    	FROM Opportunity 
+		    	WHERE isWon=true 
+		    	AND (Amount != 0 AND Amount != null)  
+		    	AND RecordTypeId NOT IN : recordTypesToExcludeAccts
+		    	AND Type NOT IN : oppTypesToExcludeAccts
+		    	AND accountId IN : allAccts
+		    	AND closeDate >= LAST_N_DAYS:365
+				GROUP BY accountId
+				HAVING accountId != null ] ) {
+			//system.debug(Logginglevel.WARN, 'ROLLUP ROW: ' + r);
+			
+			// get the ids
+			id aid = (id)(r.get('accountId'));
+				
+			// process the result row, copying it into the contact record(s)
+			updateRollupFromResultLastNDays((sobject)(accountsToUpdate.get(aid)), r);
+		}
+
+		if (!mbrRecordTypes.isEmpty()) {
+			// also roll up memberships
+			// uncomment if you are doing annual membership totals
+			for (sobject r : 
+				[SELECT accountId, 
+					//Fiscal_Year(CloseDate) CalendarYr, 
+		        	SUM(Amount) TotalOppAmount, 
+		        	//MAX(Amount) LargestAmount, 
+		        	//AVG(Amount) AverageAmount, MIN(Amount) SmallestAmount,
+					MAX(CloseDate) LastCloseDate, 
+					MIN(membership_start_date__c) FirstStartDate, MAX(membership_end_date__c) LastEndDate, 
+					COUNT_DISTINCT(Id) NumberOfClosedOpps, MAX(CombinedRollupFieldset__c) RollupFieldset 
+					FROM Opportunity
+		    		WHERE isWon=true 
+		    		// AND (Amount > 0 OR Amount < 0) 
+			    	AND RecordTypeId IN : mbrRecordTypes
+			    	AND Type NOT IN : oppTypesToExcludeAccts
+			    	AND accountId IN : allAccts
+					GROUP BY ROLLUP (accountId, Fiscal_Year(closeDate))
+		    		HAVING 
+		    		// ( Fiscal_Year(closeDate) = null OR Fiscal_Year(closeDate) >= : startYear ) AND
+		    		accountId != null ] ) {
+				system.debug('ROLLUP ROW: ' + r);
+	
+				// get the account id for this result row
+				id aid = (id)(r.get('accountId'));
+		
+				// copy all the rollups from this result row into the account object	
+				updateRollupFromResultMembership((sobject)(accountsToUpdate.get(aid)), r);
+			}
+		}
+	}
+
+	public void updateObjects() {
+
+		map<id, sobject> objsToUpdate = new map<id, sobject>();
+
+		if ( fdMap==null ) fdMap = doFieldDescribe('Account');
+
+		for (id aid : objIds) {
+			Account newAcct = new Account (id=aid);
+			putNoOppDefaults(rollupFields,newAcct,acctFieldtypeMap);
+			accountsToUpdate.put(aid,newAcct);
+		}
+
+		// exclude the individual account unless the option to roll it up is checked
+		if (allAccts.contains(defaultAccountId) && !defaultAcctRollupEnabled)
+			allAccts.remove(defaultAccountId);
+
+		// copy all the rollups from each result row into the account objects
+		integer startYear = thisYear - 10;
+		
+		// remove any records that have not changed
+		for (id aid : allAccts) {
+			account a1 = amap.get(aid);
+			account a2 = accountsToUpdate.get(aid);
+			// if (a1==a2) accountsToUpdate.remove(aid);    	// this doesn't work ,do field-by-field comparison instead
+			boolean nochange = true;
+			for (string field : rollupFields) {
+				system.debug (LoggingLevel.WARN , 'checking acct field diff for : ' + field + ' :' + a1.get(field) + 'vs. ' + a2.get(field));
+				if (a1.get(field)!=a2.get(field)) {
+					nochange = false;
+					system.debug (LoggingLevel.WARN , 'acct field diff found: ' + a1.get(field) + 'vs. ' + a2.get(field));
+					break;
+				}
+				
+			}
+			if (nochange) accountsToUpdate.remove(aid);
+		}
+		
+		// update all the accounts from this batch 
+		update accountsToUpdate.values();
+	}
+
+	public void rollupContact( id cid ) {
+		// roll up opps for one contact
+		string soql = 'select Id,' + CON_ROLLUP_FIELDS + ',' + HH_ROLLUP_FIELDS_FROM_CON + ' FROM Contact WHERE Id = :cid';
+		contact[] cc = Database.query(soql);
+	
+		if (!cc.isEmpty()) { 
+			map<id, onen_household__c> hhmap = new map<id, onen_household__c>();
+			if (cc[0].onen_household__c != null) 
+				hhmap.put(cc[0].onen_household__c, cc[0].onen_household__r);
+		
+			rollupContacts( new map<id, contact>( cc ), hhmap );
+		}
+	}
+
+	public void rollupHousehold( id hhid ) {
+		// roll up opps for one household
+		string soql = 'select Id,' + HH_ROLLUP_FIELDS + ' FROM ONEN_Household__c WHERE Id = :hhid';
+		ONEN_Household__c[] hhs = Database.query(soql);		
+		if (!hhs.isEmpty()) 
+			rollupHouseholds( hhs );
+	}	
+
+	public void rollupHouseholds( list<onen_household__c> hhs ) {
+	// roll up opps for households
+
+		if (hhs != null && !hhs.isEmpty()) {
+			
+			map<id, onen_household__c> hhmap = new map<id, onen_household__c>( hhs );
+			set<id> hhids = hhmap.keyset();
+			
+			// get household contacts
+			string soql = 'select Id,' + CON_ROLLUP_FIELDS + ' FROM Contact WHERE ONEN_Household__c IN :hhids';
+			contact[] cc = Database.query(soql);
+			map<id, contact> cmap = new map<id, contact> (cc);			
+			
+			// roll up totals
+			rollupContacts( cmap, hhmap );
+		}
+	}
+	
+	@future
+	public static void rollupHouseholdsFuture( set<id> hhIds ) {	
+		if (hhIds != null && !hhIds.isEmpty()) {
+
+			// get household contacts
+			string soql = 'select Id,' + CON_ROLLUP_FIELDS + ',' + HH_ROLLUP_FIELDS_FROM_CON + ' FROM Contact WHERE ONEN_Household__c in :hhIds';
+			contact[] cc = Database.query(soql);
+			map<id, contact> cmap = new map<id, contact> (cc);	
+			
+			map<id, onen_household__c> hhmap = new map<id, onen_household__c>();
+			for (contact c : cmap.values())
+				hhmap.put(c.onen_household__c, c.onen_household__r);
+
+ONEN_OpportunityContactRoles.haveCheckedContactRoles = true;
+ONEN_OpportunityInstallments.haveCheckedPayments = true;
+			
+			// roll up totals
+			GW_OppRollups rg = new GW_OppRollups();
+			rg.rollupContacts( cmap, hhmap );
+		}
+	}
+
+	public void rollupContacts( map<id, contact> cmap, map<id, onen_household__c> hhmap ) {
+	// roll up opps for a list of contacts and their households
+
+		set<id> conIds = cmap.keySet();
+		set<id> hhIds = hhmap.keySet();
+
+		// copy the contacts and households to a map of zeroed out versions
+		map<id, contact> contactsToUpdate = new map<id, contact>();
+		map<id, onen_household__c> householdsToUpdate = new map<id, onen_household__c>();
+
+		string[] conRollupFields = CON_ROLLUP_FIELDS.split(',');
+		if (conFieldtypeMap==null) conFieldtypeMap = doFieldDescribe('Contact');
+		string[] HHRollupFields = HH_ROLLUP_FIELDS.split(',');
+		if (HHFieldtypeMap ==null) HHFieldtypeMap = doFieldDescribe('ONEN_Household__c');
+
+		for (id cid : conIds) {
+			Contact newCon = new Contact(id=cid);
+			putNoOppDefaults(conRollupFields,newCon,conFieldtypeMap);
+			contactsToUpdate.put(cid,newCon);
+		}
+		for (id hhid : hhIds) {
+			ONEN_Household__c newHH = new ONEN_Household__c(id=hhid);
+			putNoOppDefaults(HHRollupFields,newHH,HHFieldtypeMap);
+			householdsToUpdate.put(hhid,newHH);
+		}
+
+		
+		// map<id, contact> contactsToUpdate = cmap.deepClone();
+		// map<id, onen_household__c> householdsToUpdate = hhmap.deepClone();
+		
+		system.debug (Logginglevel.WARN, 'cmap: ' + cmap);
+		
+		// copy all the rollups from each result row into the contact objects
+		integer startYear = thisYear - 10;
+		for (sobject r : 
+			[SELECT contact.ONEN_household__c hhid, contactId, 
+				Fiscal_Year(Opportunity.CloseDate) CalendarYr, SUM(Opportunity.Amount) TotalOppAmount, 
+		    	AVG(Opportunity.Amount) AverageAmount, MIN(Opportunity.Amount) SmallestAmount,
+		    	MAX(Opportunity.Amount) LargestAmount, MIN(Opportunity.CloseDate) FirstCloseDate, 
+		    	MAX(Opportunity.CloseDate) LastCloseDate, COUNT_DISTINCT(Opportunity.Id) NumberOfClosedOpps,
+		    	MAX(Opportunity.CombinedRollupFieldset__c) RollupFieldset
+		    	FROM OpportunityContactRole 
+		    	WHERE isPrimary=true AND opportunity.isWon=true 
+		    	AND (Opportunity.Amount != 0 AND Opportunity.Amount != null) 
+		    	AND Opportunity.RecordTypeId NOT IN : recordTypesToExcludeCons
+		    	AND Opportunity.Type NOT IN : oppTypesToExcludeCons
+				AND (opportunity.accountid = : defaultAccountId OR opportunity.accountid = null)  
+		    	AND contact.ONEN_household__c IN : hhIds
+				GROUP BY CUBE(contact.ONEN_household__c, contactId, Fiscal_Year(opportunity.closeDate))
+				HAVING // (Fiscal_Year(opportunity.closeDate) = null 
+    			// OR Fiscal_Year(opportunity.closeDate) >= : startYear ) AND  
+    			contact.ONEN_household__c != null AND (contactId IN : conIds OR contactId = null) ] ) {
+			
+			system.debug(Logginglevel.WARN, 'ROLLUP ROW: ' + r);
+
+			// get the ids
+			id cid = (id)(r.get('contactId'));
+			id hhid = (id)(r.get('hhid'));
+				
+			// process the result row, copying it into the contact record(s)
+			// MS: we only want to fully calc the row if it is from the last few years - older years are only for calcing Best Year for contacts
+			integer yr = (integer)r.get('CalendarYr');
+			if (cid == null) { 
+				if (hhid != null && (yr >= startYear || yr==null) ) updateRollupFromResult((sobject)(householdsToUpdate.get(hhid)), r);
+				// after doing regular processing, calc Best Contact Year stuff
+				// the rows are in year order, so just look start w/ the first yr, and increase as needed as we go
+				decimal yrAmt = (decimal)r.get('TotalOppAmount');
+				ONEN_Household__c HH = householdsToUpdate.get(hhid);
+				if ( (yrAmt > HH.Best_Gift_Year_Total__c || HH.Best_Gift_Year_Total__c == null ) && yr!=null) {
+					HH.Best_Gift_Year_Total__c = yrAmt;
+					HH.Best_Gift_Year__c = yr;
+				}
+				// HHsWithoutOpps.remove(hhid);  // this HH DOES have opps
+
+			} else {
+				// contact row
+				if ( yr >= startYear || yr==null) {
+					updateRollupFromResult((sobject)(contactsToUpdate.get(cid)), r);
+				}
+				// after doing regular processing, calc Best Contact Year stuff
+				// the rows are in year order, so just look start w/ the first yr, and increase as needed as we go
+				decimal yrAmt = (decimal)r.get('TotalOppAmount');
+				Contact con = contactsToUpdate.get(cid);
+				if ( (yrAmt > con.Best_Gift_Year_Total__c || con.Best_Gift_Year_Total__c==null ) && yr!=null) {
+					con.Best_Gift_Year_Total__c = yrAmt;
+					con.Best_Gift_Year__c = yr;
+				}
+				// consWithoutOpps.remove(cid);  // this con DOES have opps
+				system.debug(Logginglevel.WARN, 'con after best yr calc: ' + con);
+			}
+		}
+			
+		// also do rollups for last N days
+		for (sobject r : 
+			[SELECT contact.ONEN_household__c hhid, contactId, 
+		    	SUM(Opportunity.Amount) TotalOppAmount, COUNT_DISTINCT(Opportunity.Id) NumberOfClosedOpps
+		    	FROM OpportunityContactRole 
+		    	WHERE isPrimary=true AND opportunity.isWon=true 
+		    	AND (Opportunity.Amount != 0 AND Opportunity.Amount != null)
+		    	AND Opportunity.RecordTypeId NOT IN : recordTypesToExcludeCons
+		    	AND Opportunity.Type NOT IN : oppTypesToExcludeCons
+				AND (opportunity.accountid = : defaultAccountId OR opportunity.accountid = null)  
+		    	AND contact.ONEN_household__c IN : hhIds
+		    	AND opportunity.closeDate >= LAST_N_DAYS:365
+				GROUP BY ROLLUP(contact.ONEN_household__c, contactId)
+				HAVING contact.ONEN_household__c != null AND (contactId IN : conIds OR contactId = null) ] ) {
+
+			//system.debug(Logginglevel.WARN, 'ROLLUP ROW: ' + r);
+			
+			// get the ids
+			id cid = (id)(r.get('contactId'));
+			id hhid = (id)(r.get('hhid'));
+				
+			// process the result row, copying it into the contact record(s)
+			if (cid == null) { 
+				if (hhid != null)
+					updateRollupFromResultLastNDays((sobject)(householdsToUpdate.get(hhid)), r);
+			} else {
+				// contact row	
+				updateRollupFromResultLastNDays((sobject)(contactsToUpdate.get(cid)), r);
+			}
+		}
+
+		if (!mbrRecordTypes.isEmpty()) {
+			// also do rollups for membership
+			// if you need annual rollups for membership, uncomment the commented bits
+			for (sobject r : 
+				[SELECT contact.ONEN_household__c hhid, contactId, 
+					//Fiscal_Year(Opportunity.CloseDate) CalendarYr, 
+			    	SUM(Opportunity.Amount) TotalOppAmount, 
+			    	MAX(Opportunity.CloseDate) LastCloseDate, 
+			    	//AVG(Opportunity.Amount) AverageAmount, MIN(Opportunity.Amount) SmallestAmount,
+			    	//MAX(Opportunity.Amount) LargestAmount, 
+			    	MIN(Opportunity.Membership_Start_Date__c) FirstStartDate, 
+			    	MAX(Opportunity.Membership_End_Date__c) LastEndDate, 
+			    	COUNT_DISTINCT(Opportunity.Id) NumberOfClosedOpps,
+			    	MAX(Opportunity.CombinedRollupFieldset__c) RollupFieldset
+			    	FROM OpportunityContactRole 
+			    	WHERE isPrimary=true AND opportunity.isWon=true 
+			    	// AND (Opportunity.Amount > 0 OR Opportunity.Amount < 0) 
+			    	AND Opportunity.RecordTypeId IN : mbrRecordTypes
+			    	AND Opportunity.Type NOT IN : oppTypesToExcludeCons
+			    	AND Opportunity.Donation_Type_TP__c != 'Will'
+					AND (opportunity.accountid = : defaultAccountId OR opportunity.accountid = null)  
+			    	AND contact.ONEN_household__c IN : hhIds
+					GROUP BY CUBE(contact.ONEN_household__c, contactId 
+					//, Fiscal_Year(opportunity.closeDate)
+					)
+					HAVING 
+					//(Fiscal_Year(opportunity.closeDate) = null 
+	    			//OR Fiscal_Year(opportunity.closeDate) >= : startYear ) AND 
+	    			contact.ONEN_household__c != null AND (contactId IN : conIds OR contactId = null) ] ) {
+	    				
+				// get the ids
+				id cid = (id)(r.get('contactId'));
+				id hhid = (id)(r.get('hhid'));
+					
+				// process the result row, copying it into the contact record(s)
+				if (cid == null) { 
+					if (hhid != null) {
+						updateRollupFromResultMembership((sobject)(householdsToUpdate.get(hhid)), r);
+						// HHsWithoutMbrOpps.remove(hhid);
+					}
+				} else {
+					// contact row	
+					updateRollupFromResultMembership((sobject)(contactsToUpdate.get(cid)), r);
+					// consWithoutMbrOpps.remove(cid);  // this con DOES have opps (mbr opps might be diff rectypes from gift opps)
+				}
+	    	}
+		}
+
+/*
+		// parse lists of rollup fields for use in the following code
+		string[] conRollupFields = CON_ROLLUP_FIELDS.split(',');
+		string[] conGiftRollupFields = new string[0];
+		string[] conMbrRollupFields = new string[0];
+		for (string fieldname : conRollupFields) {
+			if 	(fieldname.contains('Member')) 
+				conMbrRollupFields.add(fieldname); 
+			else 
+				conGiftRollupFields.add(fieldname); 
+		}
+		string[] HHRollupFields = HH_ROLLUP_FIELDS.split(',');
+		string[] HHGiftRollupFields = new string[0];
+		string[] HHMbrRollupFields = new string[0];
+		for (string fieldname : HHRollupFields) {
+			if 	(fieldname.contains('Member')) 
+				HHMbrRollupFields.add(fieldname); 
+			else 
+				HHGiftRollupFields.add(fieldname); 
+		}
+		
+		// if we have any opps left in these maps, we need to zero them out (b/c it means their last opp was deleted)
+		if (consWithoutOpps.size() > 0) {
+			// first lookup fieldtypes for our con rollup fields
+			conFieldtypeMap = doFieldDescribe('Contact');
+			// next loop thru each field in each opp, and set to either 0 or null depending on field type
+			for (id cid : consWithoutOpps) {
+				contact con = contactsToUpdate.get(cid);
+				putNoOppDefaults (conRollupFields, con, conFieldtypeMap);
+			}
+		}
+		if (HHsWithoutOpps.size() > 0) {
+			// same thing for households
+			HHFieldtypeMap = doFieldDescribe('ONEN_Household__c');
+			for (id hhid : HHsWithoutOpps) {
+				ONEN_Household__c hh = householdsToUpdate.get(hhid);
+				putNoOppDefaults (HHRollupFields, hh, HHFieldtypeMap);
+			}
+		}
+
+		// remove (skip updating) any records that have not changed
+		for (id cid : conIds) {
+			contact c1 = cmap.get(cid);
+			contact c2 = contactsToUpdate.get(cid);
+			
+			system.debug (Logginglevel.WARN, 'c1:' + c1);
+			system.debug (Logginglevel.WARN, 'c2:' + c2);
+			system.debug (Logginglevel.WARN, 'does c1 equal c2??:' + (c1==c2));
+			
+			// if (c1==c2) contactsToUpdate.remove(cid);	// this doesn't seem to be working
+			// so instead loop through the fields and see if we find one that's different. 
+			boolean nochange = true;
+			for (string field : conRollupFields) {
+				system.debug (LoggingLevel.WARN , 'checking con field diff for : ' + field + ' :' + c1.get(field) + 'vs. ' + c2.get(field));
+				if (c1.get(field)!=c2.get(field)) {
+					nochange = false;
+					system.debug (LoggingLevel.WARN , 'con field diff found: ' + c1.get(field) + 'vs. ' + c2.get(field));
+					break;
+				}
+			}
+			if (nochange) contactsToUpdate.remove(cid);
+		}
+		for (id hhid : hhIds) {
+			ONEN_household__c hh1 = hhmap.get(hhid);
+			ONEN_household__c hh2 = householdsToUpdate.get(hhid);
+			// if (hh1==hh2)	householdsToUpdate.remove(hhid);
+			boolean nochange = true;
+			// string[] rollupFields = HH_ROLLUP_FIELDS.split(',');
+			for (string field : HHRollupFields) {
+				if (hh1.get(field)!=hh2.get(field)) {
+					nochange = false;
+					break;
+				}
+			}
+			if (nochange) householdsToUpdate.remove(hhid);
+		}
+
+		// update all the contacts from this batch 
+		if (!contactsToUpdate.isEmpty()) update contactsToUpdate.values();				
+		if (!householdsToUpdate.isEmpty()) update householdsToUpdate.values();				
+	}
+
+
+	private map<string,string> doFieldDescribe (string objName) {
+	
+		// for contact, account, or HH, make a map of each field in our rollup fieldlists
+		// of fieldname to string representing field type
+		// this will be used to assign default values
+	
+		map<string,string> fieldTypeMap = new map<string,string> (); 
+		string fields;
+		Map<String, Schema.SObjectField> M;
+		
+		if (objName == 'Contact') {
+			fields = CON_ROLLUP_FIELDS;
+			M = Schema.SObjectType.Contact.fields.getMap();
+		} else if (objName == 'Account') {
+			fields = ACCOUNT_ROLLUP_FIELDS;
+			M = Schema.SObjectType.Account.fields.getMap();
+		} else if (objName == 'ONEN_Household__c') {
+			fields = HH_ROLLUP_FIELDS;
+			M = Schema.SObjectType.ONEN_Household__c.fields.getMap();
+		}
+		string[] fieldList = fields.split(',');
+		
+		for (string fieldName : fieldList) {
+			Schema.SObjectField fld = M.get(fieldName);
+			Schema.DescribeFieldResult R = fld.getDescribe();
+			Schema.DisplayType t= R.getType();
+			string typeStr = t.name();
+			fieldTypeMap.put (fieldName,typeStr);
+		}
+		
+		return fieldTypeMap;
+		
+	}
+	
+	private void putNoOppDefaults (string[] fieldlist, sObject obj, Map<string,string> fieldtypemap) {
+		for (string fieldName : fieldlist) {
+			string fieldType = fieldtypemap.get(fieldName);
+			if (fieldType == 'Currency' || fieldType == 'Double' || fieldType == 'Integer') {
+				obj.put(fieldname , 0);
+			} else {
+				obj.put(fieldname , null);
+			}					
+		}
+	}
+
+
+	public void rollupForOppTrigger( map<id, opportunity> newOpps, map<id, opportunity> oldOpps ) {
+	// find contacts and accounts affected and then roll them up
+
+		//system.debug (LoggingLevel.WARN , 'newopps map: ' + newOpps);
+		if (triggerRollupEnabled) {
+
+			set<id> modifiedContactOpps = new set<id>();
+			set<id> acctsToReroll = new set<id>(); 
+
+			if (newOpps == null) {
+	
+				// it is a delete
+				for (id oid : oldOpps.keySet()) {
+					opportunity o = oldOpps.get(oid);
+					if (o.isWon /* && (o.Amount > 0 || o.Amount < 0) */ /* ) {
+						
+						if ((o.accountid == defaultAccountId || o.accountid == null) &&
+							(mbrRecordTypes.contains(o.recordTypeId) ||
+								!recordTypesToExcludeCons.contains(o.recordTypeId)) &&
+							(!oppTypesToExcludeCons.contains(o.type))) {
+						
+							modifiedContactOpps.add(o.id);
+						}
+						if (o.accountId != null &&
+							(mbrRecordTypes.contains(o.recordTypeId) ||
+								!recordTypesToExcludeAccts.contains(o.recordTypeId)) &&
+							(!oppTypesToExcludeAccts.contains(o.type))) {
+								
+							acctsToReroll.add(o.accountId);
+						}
+					}
+				}
+			} else if (oldOpps == null) {
+				// for insert, find the closed opps that qualify
+				for (id oid : (newOpps.keySet())) {
+					opportunity o = newOpps.get(oid);
+					if (o.isWon /* && (o.Amount > 0 || o.Amount < 0) */ /*) {    // don't think we need this clause here, since could be $0 memberships - $0 gift opps will be omitted further on 
+						
+						if ((o.accountid == defaultAccountId || o.accountid == null) &&
+							(mbrRecordTypes.contains(o.recordTypeId) ||
+								!recordTypesToExcludeCons.contains(o.recordTypeId)) &&
+							(!oppTypesToExcludeCons.contains(o.type))) {
+						 
+							modifiedContactOpps.add(o.id);
+						}
+						if (o.accountId != null &&
+							(mbrRecordTypes.contains(o.recordTypeId) ||
+								!recordTypesToExcludeAccts.contains(o.recordTypeId)) &&
+							(!oppTypesToExcludeAccts.contains(o.type))) {
+
+							acctsToReroll.add(o.accountId);
+						}
+					}
+				}
+				
+			} else {
+				// for update, find the opps that are changed in any important way
+				for (id oid : (newOpps.keySet())) {
+					
+					// compare old and new
+					opportunity o = newOpps.get(oid);
+					opportunity oldOpp = oldOpps.get(oid);
+
+					// look for opps that have changed in any important way
+					if (o.isWon != oldOpp.isWon || (o.isWon && 
+						((o.Amount != oldOpp.Amount) ||
+						(o.recordTypeId != oldOpp.recordTypeId) || 
+						(o.type != oldOpp.type) ||
+						(o.closeDate != oldOpp.closeDate) ||
+						(o.Membership_Start_Date__c != oldOpp.Membership_Start_Date__c) ||
+						(o.Membership_End_Date__c != oldOpp.Membership_End_Date__c) ||
+						(o.accountId != oldOpp.accountId)))) {
+							
+						system.debug (LoggingLevel.WARN, 'opp changed! ' + o);	 
+	
+						if (o.accountid == defaultAccountId || o.accountid == null)
+							modifiedContactOpps.add(o.id);
+							
+						if (o.accountId != null)
+							acctsToReroll.add(o.accountId);
+					}		
+				}			
+			}		
+			
+			// use the contact roles to find the contacts and households
+			if (!modifiedContactOpps.isEmpty()) {
+				map<id, contact> cmap = new map<id, contact>();
+				map<id, onen_household__c> hhmap = new map<id, onen_household__c>();
+				
+				string soql = 'SELECT ContactId,' + CON_ROLLUP_FIELDS_FROM_CONROLE + ',' + HH_ROLLUP_FIELDS_FROM_CONROLE 
+							+ ' FROM OpportunityContactRole WHERE Opportunity.Id IN :modifiedContactOpps AND isPrimary = true ALL ROWS';
+				system.debug (LoggingLevel.WARN , 'soql: ' + soql);
+				OpportunityContactRole[] conroles = Database.query(soql);
+				system.debug (LoggingLevel.WARN , 'conroles returned: ' + conroles);
+				for (OpportunityContactRole r : conroles) {
+					system.debug (LoggingLevel.WARN , 'contact of conrole: ' + r.contact);
+					cmap.put(r.contactId, r.contact);
+					hhmap.put(r.contact.onen_household__c, r.contact.onen_household__r);
+				}
+					
+				if (!cmap.isEmpty()) {
+					// for a single contact with fewer than 200 opps, roll up immediately - otherwise future
+					decimal oppCount = cmap.values()[0].onen_household__r.NumberOfClosedOpps__c;
+					if (cmap.size() == 1 && (oppCount == null || oppCount < 200)) {
+						system.debug(Logginglevel.WARN, 'Rolling up single contact now...');
+						rollupContacts( cmap, hhmap );
+					} else if ((Limits.getLimitFutureCalls() - Limits.getFutureCalls()) > 5) {
+						system.debug(Logginglevel.WARN, 'Rolling up as @future..');
+						rollupHouseholdsFuture(hhmap.keySet());
+					} else {
+						system.debug(Logginglevel.WARN, 'Did not roll up because there were too few future calls available.');
+					}
+				}
+			}
+
+			// roll them up
+			if (!acctsToReroll.isEmpty()) {
+				
+				boolean rollupNow = false;
+				map<id, account> amap ;
+				if (acctsToReroll.size() == 1) {
+					string soql = 'select id,' + ACCOUNT_ROLLUP_FIELDS + ' FROM Account WHERE Id IN :acctsToReroll';
+					account[] accts = Database.query(soql);
+					amap = new map<id, account>(accts);
+					decimal oppCount = amap.values()[0].NumberOfClosedOpps__c;
+					rollupNow = (oppCount == null || oppCount < 200);
+				}
+						
+				// for a single account with fewer than 200 opps, roll up immediately - otherwise future
+				if (rollupNow)
+					rollupAccounts( amap );
+				else if ((Limits.getLimitFutureCalls() - Limits.getFutureCalls()) > 5)
+					rollupAccountsFuture( acctsToReroll );
+				else
+					system.debug(Logginglevel.WARN, 'Did not roll up because there were too few future calls available.');				
+			}
+		}	
+	}
+
+	public void rollupAll() {
+		rollupAllAccounts();
+		rollupAllContacts();
+	}	
+
+	public void rollupAllAccounts() {
+
+		// we can handle up to 10000 query rows total, which is about 3000 acct opps in a batch
+		// this calculation very conservatively reduces batch size to avoid hitting the limit
+		// use a low batch size if there is no household max to calculate by (first time)
+		integer batchSize = 10;
+		list<account> topAccount = [select NumberOfClosedOpps__c from account 
+			where NumberOfClosedOpps__c != null 
+			order by NumberOfClosedOpps__c desc limit 1];
+		if (!topAccount.isEmpty()) {
+			decimal highestCount = topAccount[0].NumberOfClosedOpps__c;
+			batchSize = (highestCount <= 15) ? 200 :
+				((3000 / highestCount).intValue() + 1);
+		}
+
+		// start the batch to roll up all accounts
+		GW_BATCH_OppRollup batch = new GW_BATCH_OppRollup( 'SELECT id, ' + ACCOUNT_ROLLUP_FIELDS + ' FROM account'
+			+ (isTest ? ' WHERE name like \'%test%\' LIMIT 200' : '') );
+		id batchProcessId = database.executeBatch(batch, batchSize);		
+	}	
+		
+	public void rollupAllContacts() {
+
+		// we can handle up to 10000 query rows total, which is about 2000 contact opps in a batch
+		// this calculation very conservatively reduces batch size to avoid hitting the limit
+		// use a low batch size if there is no household max to calculate by (first time)
+		integer batchSize = 10;
+		list<onen_household__c> topHousehold = [select NumberOfClosedOpps__c from onen_household__c 
+			where NumberOfClosedOpps__c != null 
+			order by NumberOfClosedOpps__c desc limit 1];
+		if (!topHousehold.isEmpty()) {
+			decimal highestCount = topHousehold[0].NumberOfClosedOpps__c;
+			batchSize = (highestCount <= 10) ? 200 :
+				((2000 / highestCount).intValue() + 1);
+		}
+
+		GW_BATCH_OppRollup batch = new GW_BATCH_OppRollup( 'SELECT id,' + HH_ROLLUP_FIELDS + ' FROM onen_household__c'
+			+ (isTest ? ' WHERE Name like \'%doppleganger%\' LIMIT 200' : '') );
+		id batchProcessId = database.executeBatch(batch, batchSize);		
+	}
+
+	public static void updateRollupFromResult(sobject obj, sobject r) {
+	// used for single and batch rollups, this maps query results to the right fields
+
+		// get the fiscal year, total amount, and opp count for this result row		
+		integer fy = (integer)(r.get('CalendarYr'));
+		decimal amt = ( r.get('TotalOppAmount') == null ) ? 0 : (decimal)(r.get('TotalOppAmount'));
+		integer cnt = (integer)(r.get('NumberOfClosedOpps'));				
+		
+		// split the special field to get the last opp id and amount
+		string[] rcf = ((string)(r.get('RollupFieldset'))).split(';\\|;',-4);
+		decimal lastAmt = (rcf.size() > 1 && rcf[1] != '') ? decimal.valueOf(rcf[1]) : null;
+		
+		// check if this is an annual total or account total
+		if (fy != null) {
+
+			// put the fiscal year total in the right fields
+			if (fy == thisYear) {
+				obj.put('OppAmountThisYear__c', amt); 
+				obj.put('OppsClosedThisYear__c', cnt); 
+			} else if (fy == (thisYear - 1)) {
+				obj.put('OppAmountLastYear__c', amt); 
+				obj.put('OppsClosedLastYear__c', cnt); 
+			} else if (fy <= (thisYear - 2) && fy >= (thisYear - 10)) {
+				obj.put('OppAmount' + string.valueOf(thisYear - fy) + 'YearsAgo__c', amt); 
+				obj.put('OppsClosed' + string.valueOf(thisYear - fy) + 'YearsAgo__c', cnt); 
+			} 
+				
+		} else {
+
+			// fill in summary totals
+			obj.put('TotalOppAmount__c', amt);
+	        obj.put('NumberOfClosedOpps__c', cnt); 				
+	        obj.put('LastOppAmount__c', lastAmt); 				
+	        obj.put('AverageAmount__c', (decimal)(r.get('AverageAmount'))); 
+	        obj.put('SmallestAmount__c', (decimal)(r.get('SmallestAmount'))); 
+	        obj.put('LargestAmount__c', (decimal)(r.get('LargestAmount'))); 
+	        obj.put('FirstCloseDate__c', (date)(r.get('FirstCloseDate'))); 
+	        obj.put('LastCloseDate__c', (date)(r.get('LastCloseDate'))); 
+		}
+	}
+
+	public static void updateRollupFromResultLastNDays(sobject obj, sobject r) {
+	// used for single and batch rollups, this maps query results to the right fields
+		
+		// get the fiscal year, total amount, and opp count for this result row		
+		decimal amt = ( r.get('TotalOppAmount') == null ) ? 0 : (decimal)(r.get('TotalOppAmount'));
+		integer cnt = (integer)(r.get('NumberOfClosedOpps'));				
+		
+		// fill in totals
+        obj.put('OppAmountLastNDays__c', amt); 				
+		obj.put('OppsClosedLastNDays__c', cnt);
+	}
+
+	public static void updateRollupFromResultMembership(sobject obj, sobject r) {
+	// used for single and batch rollups, this maps query results to the right fields
+		
+		// get the fiscal year, total amount, and opp count for this result row		
+		//integer fy = (integer)(r.get('CalendarYr'));
+		decimal amt = ( r.get('TotalOppAmount') == null ) ? 0 : (decimal)(r.get('TotalOppAmount'));
+		integer cnt = (integer)(r.get('NumberOfClosedOpps'));				
+
+		// split the special field to get the last opp id and amount
+		string[] rcf = ((string)(r.get('RollupFieldset'))).split(';\\|;',-4);
+		decimal lastAmt = (rcf.size() > 1 && rcf[1] != '') ? decimal.valueOf(rcf[1]) : null;
+		string lastMemberLevel = (rcf.size() > 2) ? rcf[2] : null;
+		if (lastMemberLevel=='') lastMemberLevel = null;	// chg to null if empty so that won't cause unnecessary write  
+		string lastMemberOrigin = (rcf.size() > 3) ? rcf[3] : null;
+		if (lastMemberOrigin =='') lastMemberOrigin = null;	// chg to null if empty so that won't cause unnecessary write  
+		
+		// check if this is an annual total or account total
+/* ADD FIELDS AND UNCOMMENT IF YOU NEED ANNUAL MEMBERSHIP TOTAL BREAKOUT
+		if (fy != null) {
+
+			// put the fiscal year total in the right fields
+			if (fy == thisYear) {
+				obj.put('MembershipOppAmountThisYear__c', amt); 
+				obj.put('MembershipOppsClosedThisYear__c', cnt); 
+			} else if (fy == (thisYear - 1)) {
+				obj.put('MembershipOppAmountLastYear__c', amt); 
+				obj.put('MembershipOppsClosedLastYear__c', cnt); 
+			} else if (fy == (thisYear - 2) ) {
+				obj.put('MembershipOppAmount2YearsAgo__c', amt); 
+				obj.put('MembershipOppsClosed2YearsAgo__c', cnt); 
+			} 
+		} else {
+				
+			// fill in summary totals
+			obj.put('TotalMembershipOppAmount__c', amt);
+	        obj.put('NumberOfMembershipOpps__c', cnt); 				
+	        obj.put('LastMembershipDate__c', (date)(r.get('LastCloseDate'))); 				
+	        obj.put('LastMembershipAmount__c', lastAmt); 				
+	        obj.put('LastMembershipLevel__c', lastMemberLevel); 				
+	        obj.put('LastMembershipOrigin__c', lastMemberOrigin); 				
+	        obj.put('MembershipJoinDate__c', (date)(r.get('FirstStartDate'))); 
+	        obj.put('MembershipEndDate__c', (date)(r.get('LastEndDate'))); 		
+	        
+	        system.debug (Logginglevel.WARN, 'object after field property changes: ' + obj);		
+//		}
+	}
+
+	/************ TESTS ***************/
+	/*
+	static testMethod void testGivingRollup () {
+		
+		Date datClose = System.Today();
+			
+		// create & insert contact(s)
+		Contact[] TestCons = new contact[]{ new contact(firstname='Daddy', lastname='Longlegs') };
+		insert TestCons;
+
+		// create new opps
+		Opportunity[] newOpps = ONEN_UnitTestData.OppsForContactList ( TestCons, null, 'Closed Won', datClose, 100 , ONEN_Constants.OPP_DEFAULT_RECTYPE_FORTESTS ,null);
+
+		// insert the opp(s)
+		isTest = true;
+		Test.StartTest();
+		insert newOpps;
+		
+		//now test that a contact has received the proper member stats from the trigger
+		id FirstConId = TestCons[0].id;
+		Contact UpdatedCon = [SELECT id, account.TotalOppAmount__c, OppAmountThisYear__c, OppAmountLastYear__c, onen_household__c, onen_household__r.TotalOppAmount__c, TotalOppAmount__c FROM Contact WHERE Id = :FirstConId];
+
+		System.AssertEquals ( 100 , UpdatedCon.TotalOppAmount__c );
+		System.AssertEquals ( 100 , UpdatedCon.onen_household__r.TotalOppAmount__c );		
+		System.AssertEquals ( 100 , UpdatedCon.OppAmountThisYear__c);
+		System.AssertEquals ( 0 , UpdatedCon.OppAmountLastYear__c);
+
+		// now roll up manually
+		GW_OppRollups rg = new GW_OppRollups();
+		rg.rollupContact(testcons[0].id);
+
+		//make sure the values are still right
+		UpdatedCon = [SELECT id, account.TotalOppAmount__c, OppAmountThisYear__c, OppAmountLastYear__c, onen_household__c, onen_household__r.TotalOppAmount__c, TotalOppAmount__c FROM Contact WHERE Id = :FirstConId];
+
+		System.AssertEquals ( 100 , UpdatedCon.TotalOppAmount__c );
+		System.AssertEquals ( 100 , UpdatedCon.onen_household__r.TotalOppAmount__c );		
+		System.AssertEquals ( 100 , UpdatedCon.OppAmountThisYear__c);
+		System.AssertEquals ( 0 , UpdatedCon.OppAmountLastYear__c);
+		
+		// also try the future call, which only gets used if the trigger fails
+		GW_OppRollups.rollupHouseholdsFuture( new set<id> { updatedCon.onen_household__c } );
+		Test.StopTest();
+		
+		//make sure the values are still right
+		UpdatedCon = [SELECT id, account.TotalOppAmount__c, OppAmountThisYear__c, OppAmountLastYear__c, onen_household__c, onen_household__r.TotalOppAmount__c, TotalOppAmount__c FROM Contact WHERE Id = :FirstConId];
+
+		System.AssertEquals ( 100 , UpdatedCon.TotalOppAmount__c );
+		System.AssertEquals ( 100 , UpdatedCon.onen_household__r.TotalOppAmount__c );		
+		System.AssertEquals ( 100 , UpdatedCon.OppAmountThisYear__c);
+		System.AssertEquals ( 0 , UpdatedCon.OppAmountLastYear__c);
+
+		// delete the donations - totals should clear
+		delete newOpps;
+
+		//make sure the values are still right
+		UpdatedCon = [SELECT id, account.TotalOppAmount__c, OppAmountThisYear__c, OppAmountLastYear__c, onen_household__c, onen_household__r.TotalOppAmount__c, TotalOppAmount__c FROM Contact WHERE Id = :FirstConId];
+
+		System.AssertEquals ( 0 , UpdatedCon.TotalOppAmount__c );
+		System.AssertEquals ( 0 , UpdatedCon.onen_household__r.TotalOppAmount__c );		
+		System.AssertEquals ( 0 , UpdatedCon.OppAmountThisYear__c);
+		System.AssertEquals ( 0 , UpdatedCon.OppAmountLastYear__c);
+	}
+	
+	static testMethod void testMemberRollup () {
+		
+		Date datClose = System.Today();
+		string mbrrectype = ONEN_Constants.OPP_MEMBER_RECTYPE_FORTESTS;
+			
+		// create & insert contact(s)
+		Contact[] TestCons = new contact[]{ new contact(firstname='Daddy', lastname='Longlegs') };
+		insert TestCons;
+
+		// create new opps, first a membership
+		Opportunity[] newOpps = ONEN_UnitTestData.OppsForContactList ( TestCons, null, 'Closed Won',
+			datClose, 100 , mbrrectype ,null);
+		newOpps[0].Membership_Start_Date__c = datClose;
+		newOpps[0].Membership_End_Date__c = datClose.addYears(1);
+		newOpps[0].Donation_Type_TP__c = 'Sustainer';
+
+		// and then a non-membership
+		Opportunity[] gift = ONEN_UnitTestData.OppsForContactList ( TestCons, null, 'Closed Won',
+			datClose, 50 , ONEN_Constants.OPP_DEFAULT_RECTYPE_FORTESTS ,null);
+
+		system.debug(newOpps);
+		
+		Opportunity[] allOpps = new Opportunity[0];
+		allOpps.addAll(newOpps);
+		allOpps.addAll(gift);
+		
+		// insert the opp(s)
+		isTest = true;
+		Test.StartTest();
+		insert allOpps;
+		Test.StopTest();
+		
+		//now test that a contact has received the proper member stats from the trigger
+		id FirstConId = TestCons[0].id;
+		Contact UpdatedCon = [SELECT id, TotalMembershipOppAmount__c,LastMembershipOrigin__c, Membership_Status__c, LastMembershipLevel__c, 
+			MembershipEndDate__c, LastMembershipAmount__c, LastMembershipDate__c, TotalOppAmount__c
+			from contact where id =: firstconid];
+		System.AssertEquals ( 100 , updatedcon.TotalMembershipOppAmount__c );		
+		System.AssertEquals ( 100 , updatedcon.LastMembershipAmount__c );		
+		System.AssertEquals ( 150 , updatedcon.TotalOppAmount__c );		
+		System.AssertEquals ( 'Sustainer' , updatedcon.LastMembershipOrigin__c );		
+		System.AssertEquals ( 'Current' , updatedcon.Membership_Status__c );		
+		System.AssertEquals ( 'Evergreen Society $15 and above' , updatedcon.LastMembershipLevel__c );		
+		System.AssertEquals ( datClose.addYears(1) , updatedcon.MembershipEndDate__c );		
+		System.AssertEquals ( system.today() , updatedcon.LastMembershipDate__c );		
+		
+		// now delete the member opps, make sure those stats go to zero
+		delete newOpps;
+		UpdatedCon = [SELECT id, TotalMembershipOppAmount__c,LastMembershipOrigin__c, Membership_Status__c, LastMembershipLevel__c, 
+			MembershipEndDate__c, LastMembershipAmount__c, LastMembershipDate__c, TotalOppAmount__c
+			from contact where id =: firstconid];
+		System.AssertEquals ( 0 , updatedcon.TotalMembershipOppAmount__c );		
+		System.AssertEquals ( 0 , updatedcon.LastMembershipAmount__c );		
+		System.AssertEquals ( 50 , updatedcon.TotalOppAmount__c );		
+		System.AssertEquals ( null , updatedcon.LastMembershipOrigin__c );		
+		System.AssertEquals ( null , updatedcon.Membership_Status__c );		
+		System.AssertEquals ( null , updatedcon.LastMembershipLevel__c );		
+		System.AssertEquals ( null , updatedcon.MembershipEndDate__c );		
+		System.AssertEquals ( null , updatedcon.LastMembershipDate__c );		
+			
+		
+		
+	}
+	*/
+	static testMethod void testGivingRollupAcct () {
+
+		// create account
+		account testacct = new account(name='testacct');
+		insert testacct;
+		opportunity newOpp =
+			 new opportunity (RecordTypeId = GW_RecTypes.GetRecordTypeId('Opportunity', 
+			 					ONEN_Constants.OPP_DEFAULT_RECTYPE_FORTESTS), 
+			 					name = 'testopp', accountid = testacct.id, 
+			 					stagename='Closed Won', closedate=system.today(), amount=33333);
+		
+		// insert the opp(s)
+		Test.StartTest();
+		insert newOpp;
+
+		// test whether the trigger worked		
+		account updatedAcct = [select id, totalOppAmount__c from account where id =: testacct.id];		
+		//System.AssertEquals ( 33333 , updatedAcct.TotalOppAmount__c );		
+
+		gw_rollups.rollOneAccount( testacct.id );
+		
+		Test.StopTest();
+		updatedAcct = [select id, totalOppAmount__c from account where id =: testacct.id];
+		System.AssertEquals ( 33333 , updatedAcct.TotalOppAmount__c );
+		
+		// now delete the opp, and make sure the amount goes back to 0
+		delete newOpp;
+		updatedAcct = [select id, totalOppAmount__c from account where id =: testacct.id];
+		//System.AssertEquals ( 0 , updatedAcct.TotalOppAmount__c );
+	}	
+/*
+	static testMethod void testGivingRollupAcctMembership () {
+
+		Date datClose = System.Today();
+		string mbrrectype = ONEN_Constants.OPP_MEMBER_RECTYPE_FORTESTS;
+
+		// include membership for account rollup
+		rollupSettingsForTest.Excluded_Account_Opp_Rectypes__c = null;
+
+		// create account
+		account testacct = new account(name='testacct');
+		insert testacct;
+		opportunity newOpp =
+			 new opportunity (RecordTypeId = GW_RecTypes.GetRecordTypeId('Opportunity', mbrrectype), 
+			 					name = 'testopp', accountid = testacct.id,
+			 					Membership_Start_Date__c = datClose, Membership_End_Date__c = datClose.addMonths(12), 
+			 					Donation_Type_TP__c = 'Renewal',
+			 					stagename='Closed Won', closedate=datClose, amount=33333);
+		
+		// insert the opp(s)
+		Test.StartTest();
+		isTest = true;
+		insert newOpp;
+
+		// test whether the trigger worked		
+		account updatedAcct = [select id, totalMembershipOppAmount__c, LastMembershipDate__c, MembershipEndDate__c, MembershipJoinDate__c,
+			LastMembershipAmount__c, LastMembershipOrigin__c, totalOppAmount__c, LastMembershipLevel__c
+			from account where id =: testacct.id];		
+		System.AssertEquals ( datClose , updatedAcct.MembershipJoinDate__c );		
+		System.AssertEquals ( datClose.addMonths(12) , updatedAcct.MembershipEndDate__c );		
+		System.AssertEquals ( 33333 , updatedAcct.TotalMembershipOppAmount__c );		
+		System.AssertEquals ( system.today() , updatedAcct.LastMembershipDate__c );		
+		System.AssertEquals ( 33333 , updatedAcct.LastMembershipAmount__c );		
+		System.AssertEquals ( 'Sequoia $10,000+' , updatedAcct.LastMembershipLevel__c );		
+		System.AssertEquals ( 'Renewal' , updatedAcct.LastMembershipOrigin__c );		
+ 		System.AssertEquals ( 33333 , updatedAcct.totalOppAmount__c );		
+ 
+		// now roll up manually
+		GW_OppRollups rg = new GW_OppRollups();
+		rg.rollupAccount(testacct.id);
+
+		updatedAcct = [select id, TotalMembershipOppAmount__c, MembershipEndDate__c, MembershipJoinDate__c from account where id =: testacct.id];
+		System.AssertEquals ( datClose , updatedAcct.MembershipJoinDate__c );		
+		System.AssertEquals ( datClose.addMonths(12) , updatedAcct.MembershipEndDate__c );		
+		System.AssertEquals ( 33333 , updatedAcct.TotalMembershipOppAmount__c );		
+
+		// also try the future call, which only gets used if the trigger fails
+		GW_OppRollups.rollupAccountsFuture( new set<id> { testacct.id } );
+
+		Test.StopTest();
+
+		updatedAcct = [select id, TotalMembershipOppAmount__c, MembershipEndDate__c, MembershipJoinDate__c from account where id =: testacct.id];
+		System.AssertEquals ( datClose , updatedAcct.MembershipJoinDate__c );		
+		System.AssertEquals ( datClose.addMonths(12) , updatedAcct.MembershipEndDate__c );		
+		System.AssertEquals ( 33333 , updatedAcct.TotalMembershipOppAmount__c );		
+	
+		// now chg member dates, and make sure trigger updates dates on acct
+		newOpp.Membership_Start_Date__c = datClose.addDays(1);
+		newOpp.Membership_End_Date__c = datClose.addMonths(12).addDays(1);
+		System.debug (LoggingLevel.WARN,'updating opp w/ new member dates...');
+		update newOpp;
+		updatedAcct = [select id, TotalMembershipOppAmount__c, MembershipEndDate__c, MembershipJoinDate__c from account where id =: testacct.id];
+		System.AssertEquals ( datClose.addDays(1) , updatedAcct.MembershipJoinDate__c );		
+		System.AssertEquals ( datClose.addMonths(12).addDays(1) , updatedAcct.MembershipEndDate__c );	
+		
+		//add a 2nd opp w/ null amount, chk it doesn't blow any gaskets
+		opportunity opp2 =
+			 new opportunity (RecordTypeId = GW_RecTypes.GetRecordTypeId('Opportunity', mbrrectype), 
+			 					name = 'testopp2', accountid = testacct.id,
+			 					Membership_Start_Date__c = datClose.addYears(-2), Membership_End_Date__c = datClose.addYears(-1), 
+			 					stagename='Closed Won', closedate=datClose);
+		insert opp2;
+		updatedAcct = [select id, TotalMembershipOppAmount__c, MembershipEndDate__c, MembershipJoinDate__c from account where id =: testacct.id];
+		System.AssertEquals ( datClose.addYears(-2) , updatedAcct.MembershipJoinDate__c );		
+		System.AssertEquals ( datClose.addMonths(12).addDays(1) , updatedAcct.MembershipEndDate__c );		
+	}	
+
+	static testMethod void testGivingRollupAcctMembershipWithMembershipExcludedBySettings () {
+
+		Date datClose = System.Today();
+		string mbrrectype = ONEN_Constants.OPP_MEMBER_RECTYPE_FORTESTS;
+
+		// exclude membership from account rollup
+		rollupSettingsForTest.Excluded_Account_Opp_Rectypes__c = mbrrectype;
+
+		// create account
+		account testacct = new account(name='testacct');
+		insert testacct;
+		opportunity newOpp =
+			 new opportunity (RecordTypeId = GW_RecTypes.GetRecordTypeId('Opportunity', mbrrectype), 
+			 					name = 'testopp', accountid = testacct.id,
+			 					Membership_Start_Date__c = datClose, Membership_End_Date__c = datClose.addMonths(12), 
+			 					donation_Type_TP__c = 'New Member',
+			 					stagename='Closed Won', closedate=datClose, amount=33333);
+		
+		// insert the opp(s)
+		Test.StartTest();
+		isTest = true;
+		insert newOpp;
+
+		// test whether the trigger worked		
+		account updatedAcct = [select id, totalMembershipOppAmount__c, LastMembershipDate__c, MembershipEndDate__c, MembershipJoinDate__c,
+			LastMembershipAmount__c, LastMembershipOrigin__c, totalOppAmount__c, LastMembershipLevel__c
+			from account where id =: testacct.id];		
+		System.AssertEquals ( datClose , updatedAcct.MembershipJoinDate__c );		
+		System.AssertEquals ( datClose.addMonths(12) , updatedAcct.MembershipEndDate__c );		
+		System.AssertEquals ( 33333 , updatedAcct.TotalMembershipOppAmount__c );		
+		System.AssertEquals ( system.today() , updatedAcct.LastMembershipDate__c );		
+		System.AssertEquals ( 33333 , updatedAcct.LastMembershipAmount__c );		
+		System.AssertEquals ( 'Sequoia $10,000+' , updatedAcct.LastMembershipLevel__c );		
+		System.AssertEquals ( 'New Member' , updatedAcct.LastMembershipOrigin__c );		
+		System.AssertEquals ( 0 , updatedAcct.totalOppAmount__c );		
+ 
+		// now roll up manually
+		GW_OppRollups rg = new GW_OppRollups();
+		rg.rollupAccount(testacct.id);
+
+		updatedAcct = [select id, TotalMembershipOppAmount__c, MembershipEndDate__c, MembershipJoinDate__c from account where id =: testacct.id];
+		System.AssertEquals ( datClose , updatedAcct.MembershipJoinDate__c );		
+		System.AssertEquals ( datClose.addMonths(12) , updatedAcct.MembershipEndDate__c );		
+		System.AssertEquals ( 33333 , updatedAcct.TotalMembershipOppAmount__c );		
+
+		// also try the future call, which only gets used if the trigger fails
+		GW_OppRollups.rollupAccountsFuture( new set<id> { testacct.id } );
+
+		Test.StopTest();
+
+		updatedAcct = [select id, TotalMembershipOppAmount__c, MembershipEndDate__c, MembershipJoinDate__c from account where id =: testacct.id];
+		System.AssertEquals ( datClose , updatedAcct.MembershipJoinDate__c );		
+		System.AssertEquals ( datClose.addMonths(12) , updatedAcct.MembershipEndDate__c );		
+		System.AssertEquals ( 33333 , updatedAcct.TotalMembershipOppAmount__c );		
+	
+		// now chg member dates, and make sure trigger updates dates on acct
+		newOpp.Membership_Start_Date__c = datClose.addDays(1);
+		newOpp.Membership_End_Date__c = datClose.addMonths(12).addDays(1);
+		System.debug (LoggingLevel.WARN,'updating opp w/ new member dates...');
+		update newOpp;
+		updatedAcct = [select id, TotalMembershipOppAmount__c, MembershipEndDate__c, MembershipJoinDate__c from account where id =: testacct.id];
+		System.AssertEquals ( datClose.addDays(1) , updatedAcct.MembershipJoinDate__c );		
+		System.AssertEquals ( datClose.addMonths(12).addDays(1) , updatedAcct.MembershipEndDate__c );	
+		
+		//add a 2nd opp w/ null amount, chk it doesn't blow any gaskets
+		opportunity opp2 =
+			 new opportunity (RecordTypeId = GW_RecTypes.GetRecordTypeId('Opportunity', mbrrectype), 
+			 					name = 'testopp2', accountid = testacct.id,
+			 					Membership_Start_Date__c = datClose.addYears(-2), Membership_End_Date__c = datClose.addYears(-1), 
+			 					stagename='Closed Won', closedate=datClose);
+		insert opp2;
+		updatedAcct = [select id, TotalMembershipOppAmount__c, MembershipEndDate__c, MembershipJoinDate__c from account where id =: testacct.id];
+		System.AssertEquals ( datClose.addYears(-2) , updatedAcct.MembershipJoinDate__c );		
+		System.AssertEquals ( datClose.addMonths(12).addDays(1) , updatedAcct.MembershipEndDate__c );		
+	}	
+/*
+	static testMethod void testGivingRollupBatch () {
+		
+		Date datClose = System.Today();
+			
+		// create & insert contact(s)
+		Contact[] TestCons = ONEN_UnitTestData.CreateMultipleTestContacts ( 100 ) ;
+		insert TestCons;
+
+		// create new opps
+		Opportunity[] newOpps = ONEN_UnitTestData.OppsForContactList ( TestCons, null, 'Closed Won', datClose, 1000 , ONEN_Constants.OPP_DEFAULT_RECTYPE_FORTESTS ,null);
+
+		account testacct = new account(name='testacct');
+		insert testacct;
+
+		// test the batch rollup method
+		isTest = true; 
+		Test.StartTest();
+		GW_OppRollups rg = new GW_OppRollups();
+		rg.rollupAll();
+		Test.StopTest();
+	}	
+
+	static testMethod void OneContactMultipleOpps() {
+
+		integer howMany = 1;
+		Date datToday = System.Today();
+		//Date dat1YearAgo = Date.newInstance( datToday.year()-1,1,1);
+		Date dat1YearAgo = datToday.addYears(-1);
+		Date dat2YearAgo = datToday.addYears(-2);
+		Date dat4YearAgo = datToday.addYears(-4);
+		Date dat5YearAgo = datToday.addYears(-5);
+			
+		// create & insert contact(s)
+		Contact[] TestCons = ONEN_UnitTestData.CreateMultipleTestContacts ( howMany ) ;
+		insert TestCons;
+		
+		test.starttest();
+		isTest = true;
+		system.debug ( LoggingLevel.WARN, 'TEST>>>>> inserting gift 1...');
+		
+		// create a new gift for this yr
+		Opportunity[] testGift1 = ONEN_UnitTestData.OppsForContactList ( TestCons, null, 'Closed Won', datToday, 100 , ONEN_Constants.OPP_DEFAULT_RECTYPE_FORTESTS,null);
+		insert testGift1 ;
+		
+		// reset the conrole creation flag so we'll get conroles for this 2nd insert
+		ONEN_OpportunityContactRoles.haveCheckedContactRoles = false;
+
+		system.debug ( LoggingLevel.WARN, 'TEST>>>>> inserting gift 2...');
+		
+		//create a 2nd gift for last yr
+		Opportunity[] testGift2 = ONEN_UnitTestData.OppsForContactList ( TestCons, null, 'Closed Won', dat1YearAgo, 60, ONEN_Constants.OPP_DEFAULT_RECTYPE_FORTESTS,null);
+		ONEN_OpportunityContactRoles.haveCheckedContactRoles = false;
+		insert testGift2;
+				
+		//now test that the contact has received the proper stats from the trigger
+		id ThisConId = TestCons[0].id;
+		Contact UpdatedCon = [SELECT Id,  totalOppAmount__c, OppAmountThisYear__c, OppAmountLastYear__c, Best_Gift_Year__c, Best_Gift_Year_Total__c FROM Contact WHERE Id = :ThisConId];
+		
+		System.AssertEquals ( 160 , UpdatedCon.totalOppAmount__c );
+		System.AssertEquals ( 100 , UpdatedCon.OppAmountThisYear__c );
+		System.AssertEquals ( 60 , UpdatedCon.OppAmountLastYear__c );
+		// adjust for fiscal year
+		System.AssertEquals ( datToday.year() - ((thisYear == system.today().year()) ? 0 : 1), UpdatedCon.Best_Gift_Year__c );
+		System.AssertEquals ( 100 , UpdatedCon.Best_Gift_Year_Total__c );
+
+
+		system.debug ( LoggingLevel.WARN, 'TEST>>>>> changing gift 1...');
+		
+		// now chg the amts for both opps (cheapskate!)
+		testGift1[0].Amount = 50;
+		ONEN_OpportunityInstallments.haveCheckedPayments = false;
+		update TestGift1;
+
+		system.debug ( LoggingLevel.WARN, 'TEST>>>>> changing gift 2...');
+		
+		testGift2[0].Amount=25;
+		ONEN_OpportunityInstallments.haveCheckedPayments = false;
+		update TestGift2;
+		
+		//now test that the contact has updated stats from the trigger
+		ThisConId = TestCons[0].id;
+		UpdatedCon = [SELECT Id, totalOppAmount__c, OppAmountThisYear__c, OppAmountLastYear__c  FROM Contact WHERE Id = :ThisConId];
+		
+		System.AssertEquals ( 75 , UpdatedCon.totalOppAmount__c );
+		System.AssertEquals ( 50 , UpdatedCon.OppAmountThisYear__c );		
+		System.AssertEquals ( 25 , UpdatedCon.OppAmountLastYear__c );
+		
+
+		system.debug ( LoggingLevel.WARN, 'TEST>>>>> inserting gift 3...');
+
+		// now create a gift from 2 yrs ago
+		Opportunity[] testGift3 = ONEN_UnitTestData.OppsForContactList ( TestCons, null, 'Closed Won', dat2YearAgo, 10 , ONEN_Constants.OPP_DEFAULT_RECTYPE_FORTESTS,null);
+		ONEN_OpportunityContactRoles.haveCheckedContactRoles = false;
+		insert testGift3;
+
+		//now test that the contact has updated stats from the trigger
+		ThisConId = TestCons[0].id;
+		UpdatedCon = [SELECT Id,  totalOppAmount__c, OppAmountThisYear__c, OppAmountLastYear__c, OppAmount2YearsAgo__c FROM Contact WHERE Id = :ThisConId];
+		
+		System.AssertEquals ( 85 , UpdatedCon.totalOppAmount__c );
+		System.AssertEquals ( 50 , UpdatedCon.OppAmountThisYear__c );		
+		System.AssertEquals ( 25 , UpdatedCon.OppAmountLastYear__c );
+		System.AssertEquals ( 10 , UpdatedCon.OppAmount2YearsAgo__c );
+
+		// add another from this year (to test adding)
+		system.debug ( 'TEST>>>>> inserting gift 4...');
+		Opportunity[] testGift4 = ONEN_UnitTestData.OppsForContactList ( TestCons, null, 'Closed Won', datToday, 25 , ONEN_Constants.OPP_DEFAULT_RECTYPE_FORTESTS,null);
+		ONEN_OpportunityContactRoles.haveCheckedContactRoles = false;
+		insert testGift4;
+
+		UpdatedCon = [SELECT Id,  totalOppAmount__c, OppAmountThisYear__c, OppAmountLastYear__c, OppAmount2YearsAgo__c FROM Contact WHERE Id = :ThisConId];
+		
+		System.AssertEquals ( 110 , UpdatedCon.totalOppAmount__c );
+		System.AssertEquals ( 75 , UpdatedCon.OppAmountThisYear__c );		
+		System.AssertEquals ( 25 , UpdatedCon.OppAmountLastYear__c );
+		System.AssertEquals ( 10 , UpdatedCon.OppAmount2YearsAgo__c );
+
+		// TBD add a gift from longer ago
+		system.debug ( 'TEST>>>>> inserting gift 5...');
+		Opportunity[] testGift5 = ONEN_UnitTestData.OppsForContactList ( TestCons, null, 'Closed Won', dat4YearAgo, 200 , ONEN_Constants.OPP_DEFAULT_RECTYPE_FORTESTS,null);
+		ONEN_OpportunityContactRoles.haveCheckedContactRoles = false;
+		insert testGift5;
+		
+		// totals should not have changed, except lifetime & best yr
+		UpdatedCon = [SELECT Id,  totalOppAmount__c, OppAmountThisYear__c, OppAmountLastYear__c, OppAmount2YearsAgo__c, Best_Gift_Year__c, Best_Gift_Year_Total__c, LastModifiedDate  FROM Contact WHERE Id = :ThisConId];
+		
+		System.AssertEquals ( 310 , UpdatedCon.totalOppAmount__c );
+		System.AssertEquals ( 75 , UpdatedCon.OppAmountThisYear__c );		
+		System.AssertEquals ( 25 , UpdatedCon.OppAmountLastYear__c );
+		System.AssertEquals ( 10 , UpdatedCon.OppAmount2YearsAgo__c );		
+		// adjust for fiscal year
+		System.AssertEquals ( dat4YearAgo.year() - ((thisYear == system.today().year()) ? 0 : 1), UpdatedCon.Best_Gift_Year__c );
+		System.AssertEquals ( 200 , UpdatedCon.Best_Gift_Year_Total__c );
+		datetime lastmod = UpdatedCon.LastModifiedDate;
+		
+		// TBD add non-won gift
+		system.debug ( 'TEST>>>>> inserting gift 6...');
+		Opportunity[] testGift6 = ONEN_UnitTestData.OppsForContactList ( TestCons, null, 'Prospecting', dat4YearAgo, 35 , ONEN_Constants.OPP_DEFAULT_RECTYPE_FORTESTS,null);
+		ONEN_OpportunityContactRoles.haveCheckedContactRoles = false;
+		insert testGift6;
+		
+		// totals should not have changed at all, including mod stamp
+		UpdatedCon = [SELECT Id,  totalOppAmount__c, OppAmountThisYear__c, OppAmountLastYear__c, OppAmount2YearsAgo__c, LastModifiedDate  FROM Contact WHERE Id = :ThisConId];
+		
+		System.AssertEquals ( 310 , UpdatedCon.totalOppAmount__c );
+		System.AssertEquals ( 75 , UpdatedCon.OppAmountThisYear__c );		
+		System.AssertEquals ( 25 , UpdatedCon.OppAmountLastYear__c );
+		System.AssertEquals ( 10 , UpdatedCon.OppAmount2YearsAgo__c );		
+		System.AssertEquals ( lastmod , UpdatedCon.LastModifiedDate );		
+		
+		// now delete the 1st gift (now at $50), totals should decrease
+		system.debug ( 'TEST>>>>> deleting gift 1...');	
+		delete testGift1;
+		
+		UpdatedCon = [SELECT Id,  totalOppAmount__c, OppAmountThisYear__c, OppAmountLastYear__c, OppAmount2YearsAgo__c, Best_Gift_Year__c, Best_Gift_Year_Total__c  FROM Contact WHERE Id = :ThisConId];
+		
+		System.AssertEquals ( 260 , UpdatedCon.totalOppAmount__c );
+		System.AssertEquals ( 25 , UpdatedCon.OppAmountThisYear__c );		
+		System.AssertEquals ( 25 , UpdatedCon.OppAmountLastYear__c );
+		System.AssertEquals ( 10 , UpdatedCon.OppAmount2YearsAgo__c );		
+		System.AssertEquals ( dat4YearAgo.year() - ((thisYear == system.today().year()) ? 0 : 1), UpdatedCon.Best_Gift_Year__c );
+		System.AssertEquals ( 200 , UpdatedCon.Best_Gift_Year_Total__c );		
+		
+		best gift year needs to be adjusted for non-standard FY's		
+		// finally add a larger gift from several yrs ago to test the best gift yr going earlier than other stats
+		system.debug ( 'TEST>>>>> inserting gift 7...');
+		Opportunity[] testGift7 = ONEN_UnitTestData.OppsForContactList ( TestCons, null, 'Closed Won', dat5YearAgo, 500 , ONEN_Constants.OPP_DEFAULT_RECTYPE_FORTESTS,null);
+		ONEN_OpportunityContactRoles.haveCheckedContactRoles = false;
+		insert testGift7;
+
+		UpdatedCon = [SELECT Id,  totalOppAmount__c, OppAmountThisYear__c, OppAmountLastYear__c, OppAmount2YearsAgo__c, Best_Gift_Year__c, Best_Gift_Year_Total__c  FROM Contact WHERE Id = :ThisConId];
+		// adjust test for fiscal year
+		System.AssertEquals ( dat5YearAgo.year() - ((thisYear == system.today().year()) ? 0 : 1), UpdatedCon.Best_Gift_Year__c );
+		System.AssertEquals ( 500 , UpdatedCon.Best_Gift_Year_Total__c );
+
+		test.stopTest();
+
+		// delete the gift from 2 yrs ago, and make sure that stat goes to zero
+		system.debug ( 'TEST>>>>> deleting gift 3...');	
+		delete testGift3;	
+		
+		UpdatedCon = [SELECT Id,  totalOppAmount__c, OppAmountThisYear__c, OppAmountLastYear__c, OppAmount2YearsAgo__c, Best_Gift_Year__c, Best_Gift_Year_Total__c  FROM Contact WHERE Id = :ThisConId];
+		
+		System.AssertEquals ( 250 , UpdatedCon.totalOppAmount__c );
+		System.AssertEquals ( 25 , UpdatedCon.OppAmountThisYear__c );		
+		System.AssertEquals ( 25 , UpdatedCon.OppAmountLastYear__c );
+		System.AssertEquals ( 0 , UpdatedCon.OppAmount2YearsAgo__c );		
+		// System.AssertEquals ( dat4YearAgo.year() , UpdatedCon.Best_Gift_Year__c );
+		// commented out for now for Grist, b/c have to account for FY settings here
+		System.AssertEquals ( 200 , UpdatedCon.Best_Gift_Year_Total__c );		
+		
+				
+	}
+
+	static testMethod void OneContactOneInkind() {
+		
+		integer howMany = 1;
+		Date datToday = System.Today();
+		
+		// create & insert contact(s)
+		Contact[] TestCons = ONEN_UnitTestData.CreateMultipleTestContacts ( howMany ) ;
+		insert TestCons;
+		
+		system.debug ( 'TEST>>>>> inserting gift 1...');
+		
+		// create a new gift for this yr
+		Opportunity[] testGift1 = ONEN_UnitTestData.OppsForContactList ( TestCons, null, 'Closed Won', datToday, 100 , ONEN_Constants.OPP_DEFAULT_RECTYPE_FORTESTS,'In Kind');
+		isTest = true;
+		insert testGift1 ;
+		
+		id ThisConId = TestCons[0].id;
+		contact UpdatedCon = [SELECT Id,  totalOppAmount__c, OppAmountThisYear__c, OppAmountLastYear__c, OppAmount2YearsAgo__c FROM Contact WHERE Id = :ThisConId];
+	
+		System.Assert( !(UpdatedCon.totalOppAmount__c>0) );
+		
+		testGift1[0].Type = 'Cash';
+		update testGift1;
+		
+		UpdatedCon = [SELECT Id,  totalOppAmount__c, OppAmountThisYear__c, OppAmountLastYear__c, OppAmount2YearsAgo__c FROM Contact WHERE Id = :ThisConId];
+		System.AssertEquals ( 100 , UpdatedCon.totalOppAmount__c );
+		
+	
+	}
+
+	static testMethod void testGivingRollupBulk () {
+	
+		// for a single contact w/ no previous mbrships, add a new membership
+		// and test mbr stats are created
+		integer howMany = 50;
+		Date datClose = System.Today();
+			
+		// create & insert contact(s)
+		Contact[] TestCons = ONEN_UnitTestData.CreateMultipleTestContacts ( howMany ) ;
+		insert TestCons;
+		
+		// create new opps
+		Opportunity[] newOpps1 = ONEN_UnitTestData.OppsForContactList ( TestCons, null, 'Closed Won', datClose, 100 , ONEN_Constants.OPP_DEFAULT_RECTYPE_FORTESTS,null);
+		Opportunity[] newOpps2 = ONEN_UnitTestData.OppsForContactList ( TestCons, null, 'Closed Won', datClose.addYears(-1), 50 , ONEN_Constants.OPP_DEFAULT_RECTYPE_FORTESTS,null);
+
+		// insert the opp(s)
+		Test.StartTest();
+		isTest = true;
+		insert newOpps1;
+
+		// reset the conrole creation flag so we'll get conroles for this 2nd insert
+		ONEN_OpportunityContactRoles.haveCheckedContactRoles = false;
+		insert newOpps2;
+
+		Test.StopTest();
+		
+		id FirstConId = TestCons[10].id;
+		Contact UpdatedCon = [SELECT Id,  totalOppAmount__c, OppAmountThisYear__c, OppAmountLastYear__c, OppAmount2YearsAgo__c FROM Contact WHERE Id = :FirstConId];
+		
+		System.AssertEquals ( 150 , UpdatedCon.totalOppAmount__c );
+		System.AssertEquals ( 100 , UpdatedCon.OppAmountThisYear__c );		
+		System.AssertEquals ( 50 , UpdatedCon.OppAmountLastYear__c );
+		System.AssertEquals ( 0 , UpdatedCon.OppAmount2YearsAgo__c );
+		
+	}
+
+
+	static testMethod void testGivingRollupTooManyOpps () {
+	
+		// for a single contact w/ no previous mbrships, add a new membership
+		// and test mbr stats are created
+	
+		// create & insert contact(s)
+		Contact[] TestCons = ONEN_UnitTestData.CreateMultipleTestContacts ( 1 ) ;
+		insert TestCons;
+		
+		// create new opps
+		Opportunity[] newOpps1 = new Opportunity[0];
+		for (integer n = 0; n < 200; n++) {
+			newOpps1.add( new opportunity(RecordTypeId = GW_RecTypes.GetRecordTypeId('Opportunity', ONEN_Constants.OPP_DEFAULT_RECTYPE_FORTESTS), 
+				primary_contact__c = TestCons[0].id, name = 'test opp ' + n, 
+				stagename = 'Closed Won', closedate = system.today().adddays(-n), amount = 100));
+		}
+		
+		// insert the opp(s)
+		Test.StartTest();
+		isTest = true;
+		insert newOpps1;
+		Test.StopTest();
+		
+		id FirstConId = TestCons[0].id;
+		Contact UpdatedCon = [SELECT Id,  totalOppAmount__c, OppAmountThisYear__c, OppAmountLastYear__c, OppAmount2YearsAgo__c FROM Contact WHERE Id = :FirstConId];
+		
+		System.AssertEquals ( 20000 , UpdatedCon.totalOppAmount__c );
+		
+	} 
+
+*/
+/* OPP ROLLUP TESTS SHOULD NOT ASSUME NEWER HOUSEHOLD CODE!	
+	static testMethod void testHouseholdStats () {
+		
+		Date datClose = System.Today();
+			
+		// create & insert contact(s)
+		Contact Con1 = new contact(
+			firstname='Daddy', 
+			lastname='Longlegs',
+			SecondContactFirstName__c = 'MommyTEST',
+			SecondContactLastName__c = 'Longlegs'
+		);
+		insert Con1;
+		Contact[] TestCons = new Contact[] {Con1}; 
+		
+		// create new opps
+		Opportunity[] newOpps1 = ONEN_UnitTestData.OppsForContactList ( TestCons, null, 'Closed Won', datClose, 100 , ONEN_Constants.OPP_DEFAULT_RECTYPE_FORTESTS ,null);
+		Opportunity[] newOpps2 = ONEN_UnitTestData.OppsForContactList ( TestCons, null, 'Closed Won', datClose.addYears(-2), 200 , ONEN_Constants.OPP_DEFAULT_RECTYPE_FORTESTS ,null);
+		Opportunity[] newOpps3 = ONEN_UnitTestData.OppsForContactList ( TestCons, null, 'Closed Won', datClose.addYears(-3), 75 , ONEN_Constants.OPP_DEFAULT_RECTYPE_FORTESTS ,null);
+
+		Opportunity[] testOpps = new Opportunity[0];
+		testOpps.addAll (newOpps1);
+		testOpps.addAll (newOpps2);
+		testOpps.addAll (newOpps3);
+
+		// insert the opp(s)
+		isTest = true;
+		Test.StartTest();
+		insert testOpps;
+		Test.StopTest();
+		
+		Contact c = [SELECT Id,Total_Household_Gifts__c,OppAmountThisYearHH__c,OppAmountLastYearHH__c,LastCloseDateHH__c,ONEN_Household__r.Best_Gift_Year__c,
+			ONEN_Household__r.Best_Gift_Year_Total__c  
+			FROM Contact WHERE LastName='Longlegs' AND FirstName='MommyTEST' LIMIT 1];
+		System.assertEquals (375,c.Total_Household_Gifts__c);
+		System.assertEquals (100,c.OppAmountThisYearHH__c);
+		System.assertEquals (0,c.OppAmountLastYearHH__c);
+		System.assertEquals (datClose,c.LastCloseDateHH__c );
+		System.assertEquals (375,c.Total_Household_Gifts__c);
+		System.assertEquals (datClose.addYears(-2).year(),c.ONEN_Household__r.Best_Gift_Year__c);
+		System.assertEquals (200,c.ONEN_Household__r.Best_Gift_Year_Total__c);
+		
+		
+	}
+*/	
+	
+
+}

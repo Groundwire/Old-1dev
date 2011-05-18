@@ -1,0 +1,92 @@
+<apex:page controller="RestExplorerController">   
+  <link rel="stylesheet" type="text/css" href="{!URLFOR($Resource.simpletreemenu, 'simpletree.css')}"/>
+  <link rel="stylesheet" type="text/css" href="{!$Resource.restexplorer_styles}"/>
+  <apex:includeScript value="{!$Resource.restexplorer_scripts}"/>
+  <script type="text/javascript">
+      ddtreemenu.closefolder = "{!URLFOR($Resource.simpletreemenu, 'closed.gif')}";
+      ddtreemenu.openfolder = "{!URLFOR($Resource.simpletreemenu, 'open.gif')}";
+      
+      function toggleRequestBodyDisplay(radio) {
+          if (radio.checked && radio.value == 'POST') {
+              document.getElementById('requestBodyContainer').style.display = 'inline';
+          } else {
+              document.getElementById('requestBodyContainer').style.display = 'none';
+          }
+      }
+  </script>
+  <apex:includeScript value="{!URLFOR($Resource.simpletreemenu, 'simpletreemenu.js')}"/>
+    
+  <apex:pageMessages id="errors"/>
+    
+  <apex:form rendered="{!isBaseUrlConfigured}">
+      <p>
+          <em>Choose an HTTP method to perform on the REST API service URI below:</em>
+          <apex:selectRadio id="methodSelectRadio" value="{!requestMethod}" onclick="toggleRequestBodyDisplay(this);">
+              <apex:selectOptions value="{!availableRequestMethods}"/>
+          </apex:selectRadio>
+      </p>
+      
+      <apex:inputText value="{!url}" 
+                      style="width: 40em; height: 1.5em; font-size: 20px; font-weight: bold;" 
+                      onKeyPress="if (checkEnter(event)) {document.getElementById('{!$Component.execBtn}').click(); return false;}"/>
+      &nbsp;
+      
+      <apex:commandButton id="execBtn" 
+                          action="{!execute}" 
+                          value="Execute"                           
+                          style="font-size: 18px;" />
+                         
+      <div id="waitingNotice" style="display: none;">
+          &nbsp;<img align="absmiddle" src="{!$Resource.waiting}"/><em> Loading...</em>
+      </div>
+    
+      <div id="requestBodyContainer" style="display: {!IF(requestMethod == 'POST', 'inline', 'none')};">
+          <p><br/><strong>Request Body</strong></p>
+          <apex:inputTextarea value="{!requestBody}"
+                              style="width: 67em; height: 15em; font-family: courier, monotype;"/>
+      </div>
+
+      <script type="text/javascript">
+            document.getElementById("{!$Component.execBtn}").addEventListener("click", displayWaitingNotice, false);
+      </script>
+                                
+      <apex:outputPanel id="responsePanel">
+          <apex:outputPanel rendered="{!$CurrentPage.parameters.autoExec == '0'}">
+              <p/>
+              <apex:pageMessage severity="WARNING" 
+                  strength="2" 
+                  summary="<strong>This URI needs to be completed before executing</strong>"
+                  detail="For example, it may need a merge field populated (e.g. {ID}) or a query string appended (e.g. ?q=)"
+                  escape="false"/>
+          </apex:outputPanel>
+          
+          <apex:outputPanel rendered="{!OR(NOT(ISBLANK(rawResponseHeaders)), NOT(ISBLANK(rawResponse)), NOT(ISBLANK(response)))}">
+              <p/>
+              
+               <div style="float: left;">
+                   <apex:outputPanel rendered="{!requestMethod != 'HEAD'}">    
+                      <a href="javascript:ddtreemenu.flatten('responseList', 'expand')">Expand All</a> | <a href="javascript:ddtreemenu.flatten('responseList', 'contact')">Collapse All</a>
+                      <div id="responseListContainer" class="results"></div>
+                  </apex:outputPanel>
+                  <apex:pageMessage severity="INFO" 
+                                    strength="2" 
+                                    summary="<strong>HEAD Contains No Body</strong>"
+                                    detail="The HEAD method does not return a body to display. See Raw Response to the right for details."
+                                    escape="false"
+                                    rendered="{!requestMethod == 'HEAD'}"/>
+              </div>             
+              <div id="rawJson" class="codeViewPortContainer" style="float: right;">
+                  <strong>Raw Response</strong>
+                  <p class="codeViewPort">{!rawResponseHeaders}<br/>{!rawResponse}</p>
+              </div>
+          </apex:outputPanel>
+      </apex:outputPanel>
+      
+  </apex:form>
+  
+  <script type="text/javascript">    
+      if ({!NOT(ISBLANK(response))}) {
+          convert({!response});
+      }
+  </script>
+</apex:page>

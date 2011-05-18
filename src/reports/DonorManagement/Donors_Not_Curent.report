@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Report xmlns="http://soap.sforce.com/2006/04/metadata">
+    <columns>
+        <field>FIRST_NAME</field>
+    </columns>
+    <columns>
+        <field>LAST_NAME</field>
+    </columns>
+    <columns>
+        <field>Contact.Primary_Address_Household_Greeting__c</field>
+    </columns>
+    <columns>
+        <field>Contact.Primary_Address_Household_Name__c</field>
+    </columns>
+    <columns>
+        <field>Contact.Primary_Street__c</field>
+    </columns>
+    <columns>
+        <field>Contact.Primary_City__c</field>
+    </columns>
+    <columns>
+        <field>Contact.Primary_State_Province__c</field>
+    </columns>
+    <columns>
+        <field>Contact.Primary_Postal_Code__c</field>
+    </columns>
+    <columns>
+        <field>Contact.TotalOppAmount__c</field>
+    </columns>
+    <columns>
+        <field>Contact.OppAmountLastNDays__c</field>
+    </columns>
+    <description>Donors who have not made a gift in the last 365 days</description>
+    <filter>
+        <booleanFilter>1 AND 2 AND 3 AND 4</booleanFilter>
+        <criteriaItems>
+            <column>Contact.OppAmountLastNDays__c</column>
+            <operator>equals</operator>
+            <value>,0</value>
+        </criteriaItems>
+        <criteriaItems>
+            <column>Contact.TotalOppAmount__c</column>
+            <operator>notEqual</operator>
+            <value>,0</value>
+        </criteriaItems>
+        <criteriaItems>
+            <column>Contact.Do_Not_Solicit__c</column>
+            <operator>equals</operator>
+            <value>0</value>
+        </criteriaItems>
+        <criteriaItems>
+            <column>Contact.Do_Not_Mail__c</column>
+            <operator>equals</operator>
+            <value>0</value>
+        </criteriaItems>
+    </filter>
+    <format>Tabular</format>
+    <name>Donors - Not Curent</name>
+    <reportType>ContactList</reportType>
+    <scope>organization</scope>
+    <showDetails>true</showDetails>
+    <timeFrameFilter>
+        <dateColumn>CREATED_DATE</dateColumn>
+        <interval>INTERVAL_CUSTOM</interval>
+    </timeFrameFilter>
+</Report>

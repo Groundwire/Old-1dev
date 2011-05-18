@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Report xmlns="http://soap.sforce.com/2006/04/metadata">
+    <columns>
+        <field>CUST_NAME</field>
+    </columns>
+    <columns>
+        <field>Quotation__c.Quoted_Contact__c</field>
+    </columns>
+    <columns>
+        <field>Quotation__c.Quoted_Organization__c</field>
+    </columns>
+    <columns>
+        <field>Quotation__c.Quote_Issues__c</field>
+    </columns>
+    <columns>
+        <field>Quotation__c.Quote_Nature__c</field>
+    </columns>
+    <columns>
+        <field>Quotation__c.Quote_Permission__c</field>
+    </columns>
+    <columns>
+        <field>CUST_CREATED_DATE</field>
+    </columns>
+    <columns>
+        <field>CUST_CREATED_ALIAS</field>
+    </columns>
+    <columns>
+        <field>CUST_LAST_UPDATE_ALIAS</field>
+    </columns>
+    <description>All quotations</description>
+    <format>Tabular</format>
+    <name>Quotations</name>
+    <reportType>CustomEntity$Quotation__c</reportType>
+    <scope>organization</scope>
+    <showDetails>true</showDetails>
+    <timeFrameFilter>
+        <dateColumn>Quotation__c.Quote_Date__c</dateColumn>
+        <interval>INTERVAL_CUSTOM</interval>
+    </timeFrameFilter>
+</Report>

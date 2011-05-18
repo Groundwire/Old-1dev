@@ -1,0 +1,1035 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <actionOverrides>
+        <actionName>Accept</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Clone</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Delete</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Edit</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>List</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>New</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Tab</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>View</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <deploymentStatus>Deployed</deploymentStatus>
+    <enableActivities>true</enableActivities>
+    <enableEnhancedLookup>false</enableEnhancedLookup>
+    <enableFeeds>false</enableFeeds>
+    <enableHistory>false</enableHistory>
+    <enableReports>true</enableReports>
+    <fields>
+        <fullName>Close_Date__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Expected or actual date the outcome is to be decided</inlineHelpText>
+        <label>Close Date</label>
+        <required>false</required>
+        <type>Date</type>
+    </fields>
+    <fields>
+        <fullName>Current_Position__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Our current position on this Outcome -- Current Position may be different from Initial Position, which reflects our position at the outset.</inlineHelpText>
+        <label>Current Position</label>
+        <picklist>
+            <picklistValues>
+                <fullName>Support</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Support - if amended</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Oppose</fullName>
+                <default>false</default>
+            </picklistValues>
+            <sorted>false</sorted>
+        </picklist>
+        <type>Picklist</type>
+    </fields>
+    <fields>
+        <fullName>Current_Priority__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>What is this Outcome&apos;s current priority level?</inlineHelpText>
+        <label>Current Priority</label>
+        <picklist>
+            <picklistValues>
+                <fullName>High</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Medium</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Low</fullName>
+                <default>false</default>
+            </picklistValues>
+            <sorted>false</sorted>
+        </picklist>
+        <type>Picklist</type>
+    </fields>
+    <fields>
+        <fullName>Final_Outcome_Effort__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>What was the scale of our effort in trying to influence this Outcome?</inlineHelpText>
+        <label>Final Outcome Effort</label>
+        <picklist>
+            <picklistValues>
+                <fullName>Small</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Medium</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Large</fullName>
+                <default>false</default>
+            </picklistValues>
+            <sorted>false</sorted>
+        </picklist>
+        <type>Picklist</type>
+    </fields>
+    <fields>
+        <fullName>Final_Outcome_Impact__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>What was the impact of our work on this Outcome?</inlineHelpText>
+        <label>Final Outcome Impact</label>
+        <picklist>
+            <picklistValues>
+                <fullName>Positive Impact</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>No Impact</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Negative Impact</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Unknown Impact</fullName>
+                <default>false</default>
+            </picklistValues>
+            <sorted>false</sorted>
+        </picklist>
+        <type>Picklist</type>
+    </fields>
+    <fields>
+        <fullName>Final_Outcome_Quality__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>How successful was the Outcome&apos;s conclusion?</inlineHelpText>
+        <label>Final Outcome Quality</label>
+        <picklist>
+            <picklistValues>
+                <fullName>Very Good</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Good</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Neutral</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Bad</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Very Bad</fullName>
+                <default>false</default>
+            </picklistValues>
+            <sorted>false</sorted>
+        </picklist>
+        <type>Picklist</type>
+    </fields>
+    <fields>
+        <fullName>Impact_Notes__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Description of the impact of our work toward achieving the desired Outcome</inlineHelpText>
+        <label>Impact Notes</label>
+        <length>32000</length>
+        <type>LongTextArea</type>
+        <visibleLines>6</visibleLines>
+    </fields>
+    <fields>
+        <fullName>Initial_Position_Description__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Description of our initial position on this Outcome</inlineHelpText>
+        <label>Initial Position Description</label>
+        <length>32000</length>
+        <type>LongTextArea</type>
+        <visibleLines>6</visibleLines>
+    </fields>
+    <fields>
+        <fullName>Initial_Position__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Our starting position on this Outcome</inlineHelpText>
+        <label>Initial Position</label>
+        <picklist>
+            <picklistValues>
+                <fullName>Support</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Support - if amended</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Oppose</fullName>
+                <default>false</default>
+            </picklistValues>
+            <sorted>false</sorted>
+        </picklist>
+        <type>Picklist</type>
+    </fields>
+    <fields>
+        <fullName>Jurisdiction__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Primary jurisdiction impacted by this Outcome</inlineHelpText>
+        <label>Jurisdiction</label>
+        <referenceTo>Jurisdiction__c</referenceTo>
+        <relationshipLabel>Outcomes</relationshipLabel>
+        <relationshipName>Outcomes</relationshipName>
+        <type>Lookup</type>
+    </fields>
+    <fields>
+        <fullName>Legislation_Name_Number__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Identifier for legislation tied to this Outcome</inlineHelpText>
+        <label>Legislation Name/Number</label>
+        <length>255</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Outcome_Owning_Organization__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>The Outcome&apos;s custodial organization or entity -- For litigation, the Outcome-Owning Organization would be a court; for legal statues, a government; etc.</inlineHelpText>
+        <label>Outcome-Owning Organization</label>
+        <referenceTo>Account</referenceTo>
+        <relationshipLabel>Outcomes - Decision Maker</relationshipLabel>
+        <relationshipName>Outcome_Owning_Organization</relationshipName>
+        <type>Lookup</type>
+    </fields>
+    <fields>
+        <fullName>Parent_Outcome__c</fullName>
+        <externalId>false</externalId>
+        <label>Parent Outcome</label>
+        <referenceTo>Outcome__c</referenceTo>
+        <relationshipLabel>Outcomes in Hierarchy</relationshipLabel>
+        <relationshipName>Outcomes</relationshipName>
+        <type>Lookup</type>
+    </fields>
+    <fields>
+        <fullName>Stage__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>The current stage or step on the way to the Outcome</inlineHelpText>
+        <label>Stage</label>
+        <picklist>
+            <picklistValues>
+                <fullName>Open</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Prefiling</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Filed</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Waiting for Draft</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Need To Comment</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>In Committee</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>In Conference</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Litigation</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Scheduled</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>In Court</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>In Appeal</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Waiting to Hear Decision</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Decision Made</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Closed</fullName>
+                <default>false</default>
+            </picklistValues>
+            <sorted>false</sorted>
+        </picklist>
+        <type>Picklist</type>
+    </fields>
+    <fields>
+        <fullName>Type__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>The type or category of Outcome</inlineHelpText>
+        <label>Type</label>
+        <picklist>
+            <picklistValues>
+                <fullName>Legislation</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Annual Ammendment to Comprehensive Plan</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Critical Areas Ordinance</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Development Regulations</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Shoreline Master Plan</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Update to Comprehensive Plan</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Priorities for Healthy Washington Effort</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Awareness Raising</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Voter Education</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Capacity Building</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>GMHB</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Appeals</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Superior</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Supreme</fullName>
+                <default>false</default>
+            </picklistValues>
+            <sorted>false</sorted>
+        </picklist>
+        <type>Picklist</type>
+    </fields>
+    <label>Outcome</label>
+    <listViews>
+        <fullName>All</fullName>
+        <filterScope>Everything</filterScope>
+        <label>All</label>
+    </listViews>
+    <listViews>
+        <fullName>OpenLitigations</fullName>
+        <columns>NAME</columns>
+        <columns>Outcome_Owning_Organization__c</columns>
+        <columns>Close_Date__c</columns>
+        <filterScope>Everything</filterScope>
+        <filters>
+            <field>RECORDTYPE</field>
+            <operation>equals</operation>
+            <value>Outcome__c.Litigation</value>
+        </filters>
+        <filters>
+            <field>Stage__c</field>
+            <operation>equals</operation>
+            <value>Prefiling,Filed,Scheduled,In Court,In Appeal</value>
+        </filters>
+        <label>Open Litigations</label>
+    </listViews>
+    <listViews>
+        <fullName>PastOutcomes</fullName>
+        <columns>NAME</columns>
+        <columns>Outcome_Owning_Organization__c</columns>
+        <columns>RECORDTYPE</columns>
+        <columns>Type__c</columns>
+        <columns>Current_Priority__c</columns>
+        <columns>Final_Outcome_Quality__c</columns>
+        <columns>Final_Outcome_Impact__c</columns>
+        <columns>Close_Date__c</columns>
+        <filterScope>Everything</filterScope>
+        <filters>
+            <field>Stage__c</field>
+            <operation>equals</operation>
+            <value>Litigation,Closed</value>
+        </filters>
+        <label>Past Outcomes</label>
+    </listViews>
+    <listViews>
+        <fullName>RegulationsNeedingComment</fullName>
+        <columns>NAME</columns>
+        <columns>Outcome_Owning_Organization__c</columns>
+        <columns>Type__c</columns>
+        <columns>Current_Priority__c</columns>
+        <columns>Jurisdiction__c</columns>
+        <filterScope>Everything</filterScope>
+        <filters>
+            <field>Stage__c</field>
+            <operation>equals</operation>
+            <value>Need To Comment</value>
+        </filters>
+        <filters>
+            <field>RECORDTYPE</field>
+            <operation>equals</operation>
+            <value>Outcome__c.Regulations</value>
+        </filters>
+        <label>Regulations Needing Comment</label>
+    </listViews>
+    <listViews>
+        <fullName>RegulationsWaitingForDraft</fullName>
+        <columns>NAME</columns>
+        <columns>Outcome_Owning_Organization__c</columns>
+        <columns>Close_Date__c</columns>
+        <columns>Type__c</columns>
+        <columns>Jurisdiction__c</columns>
+        <columns>Current_Priority__c</columns>
+        <filterScope>Everything</filterScope>
+        <filters>
+            <field>Stage__c</field>
+            <operation>equals</operation>
+            <value>Waiting for Draft</value>
+        </filters>
+        <filters>
+            <field>RECORDTYPE</field>
+            <operation>equals</operation>
+            <value>Outcome__c.Regulations</value>
+        </filters>
+        <label>Regulations Waiting For Draft</label>
+    </listViews>
+    <nameField>
+        <label>Outcome Name</label>
+        <type>Text</type>
+    </nameField>
+    <pluralLabel>Outcomes</pluralLabel>
+    <recordTypes>
+        <fullName>Legislation</fullName>
+        <active>true</active>
+        <description>Items before the state legislative bodies</description>
+        <label>Legislation</label>
+        <picklistValues>
+            <picklist>Current_Position__c</picklist>
+            <values>
+                <fullName>Oppose</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Support</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Support - if amended</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Current_Priority__c</picklist>
+            <values>
+                <fullName>High</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Low</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Medium</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Final_Outcome_Effort__c</picklist>
+            <values>
+                <fullName>Large</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Medium</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Small</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Final_Outcome_Impact__c</picklist>
+            <values>
+                <fullName>Negative Impact</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>No Impact</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Positive Impact</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Final_Outcome_Quality__c</picklist>
+            <values>
+                <fullName>Bad</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Good</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Neutral</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Initial_Position__c</picklist>
+            <values>
+                <fullName>Oppose</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Support</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Support - if amended</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Stage__c</picklist>
+            <values>
+                <fullName>Closed</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Decision Made</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>In Committee</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>In Conference</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Need To Comment</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Waiting for Draft</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Waiting to Hear Decision</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Type__c</picklist>
+            <values>
+                <fullName>Legislation</fullName>
+                <default>true</default>
+            </values>
+        </picklistValues>
+    </recordTypes>
+    <recordTypes>
+        <fullName>Litigation</fullName>
+        <active>true</active>
+        <description>Legal action we&apos;re taking</description>
+        <label>Litigation</label>
+        <picklistValues>
+            <picklist>Current_Position__c</picklist>
+            <values>
+                <fullName>Oppose</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Support</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Support - if amended</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Current_Priority__c</picklist>
+            <values>
+                <fullName>High</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Low</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Medium</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Final_Outcome_Effort__c</picklist>
+            <values>
+                <fullName>Large</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Medium</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Small</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Final_Outcome_Impact__c</picklist>
+            <values>
+                <fullName>Negative Impact</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>No Impact</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Positive Impact</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Final_Outcome_Quality__c</picklist>
+            <values>
+                <fullName>Bad</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Good</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Neutral</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Initial_Position__c</picklist>
+            <values>
+                <fullName>Oppose</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Support</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Support - if amended</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Stage__c</picklist>
+            <values>
+                <fullName>Closed</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Decision Made</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Filed</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>In Appeal</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>In Court</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Prefiling</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Waiting to Hear Decision</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Type__c</picklist>
+            <values>
+                <fullName>Appeals</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>GMHB</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Superior</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Supreme</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+    </recordTypes>
+    <recordTypes>
+        <fullName>Regulations</fullName>
+        <active>true</active>
+        <description>New and changing regulations</description>
+        <label>Regulations</label>
+        <picklistValues>
+            <picklist>Current_Position__c</picklist>
+            <values>
+                <fullName>Oppose</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Support</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Support - if amended</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Current_Priority__c</picklist>
+            <values>
+                <fullName>High</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Low</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Medium</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Final_Outcome_Effort__c</picklist>
+            <values>
+                <fullName>Large</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Medium</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Small</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Final_Outcome_Impact__c</picklist>
+            <values>
+                <fullName>Negative Impact</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>No Impact</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Positive Impact</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Final_Outcome_Quality__c</picklist>
+            <values>
+                <fullName>Bad</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Good</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Neutral</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Initial_Position__c</picklist>
+            <values>
+                <fullName>Oppose</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Support</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Support - if amended</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Stage__c</picklist>
+            <values>
+                <fullName>Closed</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Decision Made</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Litigation</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Need To Comment</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Waiting for Draft</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Waiting to Hear Decision</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Type__c</picklist>
+            <values>
+                <fullName>Annual Ammendment to Comprehensive Plan</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Critical Areas Ordinance</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Development Regulations</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Legislation</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Priorities for Healthy Washington Effort</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Shoreline Master Plan</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Update to Comprehensive Plan</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+    </recordTypes>
+    <recordTypes>
+        <fullName>StrategicOutcome</fullName>
+        <active>true</active>
+        <description>Broad mission supporting outcomes</description>
+        <label>Strategic Outcome</label>
+        <picklistValues>
+            <picklist>Current_Position__c</picklist>
+            <values>
+                <fullName>Oppose</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Support</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Support - if amended</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Current_Priority__c</picklist>
+            <values>
+                <fullName>High</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Low</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Medium</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Final_Outcome_Effort__c</picklist>
+            <values>
+                <fullName>Large</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Medium</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Small</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Final_Outcome_Impact__c</picklist>
+            <values>
+                <fullName>Negative Impact</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>No Impact</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Positive Impact</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Final_Outcome_Quality__c</picklist>
+            <values>
+                <fullName>Bad</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Good</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Neutral</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Initial_Position__c</picklist>
+            <values>
+                <fullName>Oppose</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Support</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Support - if amended</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Stage__c</picklist>
+            <values>
+                <fullName>Closed</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Open</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Type__c</picklist>
+            <values>
+                <fullName>Awareness Raising</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Capacity Building</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Voter Education</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+    </recordTypes>
+    <searchLayouts>
+        <customTabListAdditionalFields>RECORDTYPE</customTabListAdditionalFields>
+        <customTabListAdditionalFields>Close_Date__c</customTabListAdditionalFields>
+        <customTabListAdditionalFields>Type__c</customTabListAdditionalFields>
+        <customTabListAdditionalFields>Stage__c</customTabListAdditionalFields>
+        <customTabListAdditionalFields>Outcome_Owning_Organization__c</customTabListAdditionalFields>
+        <customTabListAdditionalFields>Jurisdiction__c</customTabListAdditionalFields>
+    </searchLayouts>
+    <sharingModel>ReadWrite</sharingModel>
+</CustomObject>

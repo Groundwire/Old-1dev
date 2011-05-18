@@ -1,0 +1,55 @@
+<script type="text/javascript">
+	function refreshView() { 
+		// run the list view, fetch into a string 
+		var response = doGet ( daView ); 
+		
+		// mess with the response to locate just the list stuff we want 
+		var idx ; 
+		//idx = response.indexOf('<div class="bNext">'); 
+		//idx = response.indexOf('<div class="listAccount">'); 
+		idx = response.indexOf('<div class="reportOutput">'); 
+		response = response.substr(idx); // yank off the tab and side bar 
+		
+		
+		
+		
+		// var endidx = response.indexOf('<!-- End ListElement -->'); 
+		var endidx = response.indexOf('<label for="drillbreak">'); 
+		response = response.substr(0,endidx); // rip off the bottom of the page 
+		
+		// Get rid of the check boxes! 
+		response = response.replace(/type\=\"checkbox\"/g,"type\=\"hidden\"") 
+		
+		// finaly edit every hyperlink to run in the parent window ... 
+		response = response.replace(/<a href\=/g,"<a target\=\"_parent\" href\=") 
+		
+		document.getElementById('main').innerHTML = response; 
+	} 
+	
+	// synchronous implementation of GET 
+	function doGet (url){ 
+		var xmlhttp = false; 
+		
+		if (!xmlhttp){ 
+			try { 
+				xmlhttp = new ActiveXObject('Msxml2.XMLHTTP'); 
+			} catch(e) { 
+				try { 
+					xmlhttp = new ActiveXObject('Microsoft.XMLHTTP'); 
+				} catch(e) { 
+					xmlhttp = new XMLHttpRequest(); 
+				} 
+			} 
+		} 
+		
+		if (xmlhttp){ 
+			// alert('hit: ' + url); 
+			// synchronous call b/c we NEED the timezones to be 
+			// loaded properly before loading any events 
+			xmlhttp.open("GET", url, false); 
+			xmlhttp.send(null); 
+			var text = xmlhttp.responseText; 
+			return text; 
+		} 
+	}
+</script>

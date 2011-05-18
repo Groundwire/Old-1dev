@@ -1,0 +1,27 @@
+<apex:page controller="GW_CTRL_ClippingHelp"
+	tabStyle="ClippingHelp__tab">
+
+	<apex:sectionHeader title="Create a Clippings Bookmarklet" />
+	<apex:pageBlock >
+		<p>With this handy bookmarklet, you can clip stories from anywhere
+		on the web and suck them back into Salesforce and save them as a
+		Clipping. Follow these steps to get started using the Clippings
+		feature.</p>
+		<ol>
+			<li>Drag the bookmarklet (link below) link up to your browser's
+			bookmarks toolbar.</li>
+			<li>Go to any web page you want to clip and save.</li>
+			<li>When on that page, highlight some text.</li>
+			<li>Click the bookmarklet up in your browser's bookmark toolbar;
+			you should be redirected to the New Clipping page, with data dropping
+			into the correct fields.</li>
+			<li>If it doesn't work, try again. If you need help, contact
+			your system administrator.</li>
+		</ol>
+		<apex:pageBlockSection title="Bookmarklet Link">
+			<strong><apex:outputLink value="{!bookmarkletLink}"
+				id="theLink">Clip to Salesforce</apex:outputLink></strong>
+		</apex:pageBlockSection>
+	</apex:pageBlock>
+
+</apex:page>

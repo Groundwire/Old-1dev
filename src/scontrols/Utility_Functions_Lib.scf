@@ -1,0 +1,132 @@
+<script type="text/javascript">
+    /****************************************************************
+	* function to look for a field on a given object. Thanks to Ron Hess of sf.com!
+	*****************************************************************/
+	function check_field(table, field) {
+		if( ! /__c/.test(field) ) {
+			field += '__c';
+		}
+		var def = sforce.connection.describeSObject(table);
+		for (var i=0; i<def.fields.length; i++) {
+			if (def.fields[i].name == field) {
+				return true;
+			}
+		}
+	} 
+	/****************************************************************
+	* function to get an Id from an object name
+	*****************************************************************/
+	function getRecrodTypesforObjects(ObjectName) {
+		var RecordTypesArray = new Array();		
+		var result = sforce.connection.query("Select r.Id, r.Name, r.SobjectType from RecordType r where r.IsActive=true and r.SobjectType='"+ ObjectName +"'");	
+		var RecordTypesArray = result.getArray("records");
+		oRecordTypes = new Object();
+		for (var i=0;i<RecordTypesArray.length;i++) {		
+			var oSingleRecordType = new Object();			
+			oSingleRecordType.Name=RecordTypesArray[i].Name;
+			oSingleRecordType.Id=RecordTypesArray[i].Id;
+			oRecordTypes[RecordTypesArray[i].Name]=oSingleRecordType;	
+		}
+		return oRecordTypes;		
+	}
+	/****************************************************************
+	* function to get recordtype name from the id from the js object
+	* listing all record types
+	*****************************************************************/
+	function getRecordTypeName(oRecordTypeObject,RecordTypeId) {
+		var ThisRecordTypeName = "";
+		for (var RecordTypeName in oRecordTypeObject) {	
+			if( oRecordTypeObject[RecordTypeName].Id==RecordTypeId) {	
+				ThisRecordTypeName = RecordTypeName;
+			}
+		}
+		return ThisRecordTypeName;
+	}
+	/****************************************************************
+	* function to get an Id from an object name
+	*****************************************************************/
+	function getObjectId(Object,Field,Name) {
+		var qr = sforce.connection.query("Select Id from " + Object + " where " + Field + "='" + Name + "'");
+		if (qr.size>0) {
+			return qr.getArray("records")[0].Id;
+		} else {
+			alert("Can't find " + Object + " named " + Name);
+		}
+	}
+	/****************************************************************
+	* function to deal with ' that would blow up the page
+	*****************************************************************/
+	function encode(string) {
+		if (string==undefined||string==null) {
+			return '';
+		} else {
+			//string = string.replace("\'","\\'");
+			string = string.replace(/\'/g,"\\'"); 			
+			return string;
+		}
+	}
+	/****************************************************************
+	* function to put the ' back in the strings when displaying or storing in the database
+	*****************************************************************/
+	function decode(string) {
+		if (string==undefined||string==null) {
+			return '';
+		} else {
+			//string = string.replace("\\'","\'");
+			string = string.replace("\\'g","\'");
+			return string;
+		}
+	}
+	/****************************************************************
+	* function for cloning all the contact roles for the existing opp to the new opp
+	*****************************************************************/
+	function SetContactRoles(CreatedOpportunityId,ContactRolesArray){	
+		//create an array to pass it to Update
+		var newcontactRolesArray = new Array();
+		for(ContactRolesRow=0;ContactRolesRow<ContactRolesArray.length;ContactRolesRow++) {
+			var ThisContactRole = ContactRolesArray[ContactRolesRow];
+			//create the object for opportunity contact role
+			var ContactRole = new sforce.SObject('OpportunityContactRole');
+			//set the id to match the new opportunity
+			ContactRole.set("OpportunityId",CreatedOpportunityId);
+			//set the contact to match our current contact
+			ContactRole.set("ContactId",ThisContactRole.get("ContactId"));
+			//set the contact role to the default
+			ContactRole.set("Role",ThisContactRole.get("Role"));
+			//Make it primary
+			ContactRole.set("IsPrimary",ThisContactRole.getBoolean("IsPrimary"));
+			newcontactRolesArray[ContactRolesRow] = ContactRole;
+		}
+		//alert(ContactRolesArray);
+		//alert(newcontactRolesArray);
+		return sforce.connection.create(newcontactRolesArray);
+	}
+	/****************************************************************
+	* create picklist array with recordtype sensitivity
+	*****************************************************************/
+	function generatePicklistArray(ObjectName,PicklistName,RecordType) {
+		//array to hold picklist values
+		var PicklistValues = new Array();
+		//get the layout for the object and recordtype
+		var result = sforce.connection.describeLayout(ObjectName,[RecordType]);
+		//get mappings for this recordtype
+		var mappings = result.getArray("recordTypeMappings");
+		//get the first mapping
+		var ThisMapping = mappings[0];
+		//get all the picklists
+		var Picklists = ThisMapping.picklistsForRecordType;
+		//loop through them and get the values when you find the right one
+		for (var i=0; i<Picklists.length; i++) {
+			if(Picklists[i].picklistName==PicklistName) {
+				PicklistValues = Picklists[i].picklistValues;
+			}
+		}
+		return PicklistValues;
+	}
+	/****************************************************************
+	* is this an object?
+	*****************************************************************/
+	function isObject(a){
+		return (typeof a == 'object');
+	}
+</script>

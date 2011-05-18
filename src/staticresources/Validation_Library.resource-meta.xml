@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<StaticResource xmlns="http://soap.sforce.com/2006/04/metadata">
+    <cacheControl>Public</cacheControl>
+    <contentType>application/stuffit</contentType>
+    <description>Two javascript libraries for browser-side validation of input fields on VF forms: jquery and jquery validation plugin.</description>
+</StaticResource>

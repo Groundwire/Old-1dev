@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <customSettingsType>Hierarchy</customSettingsType>
+    <customSettingsVisibility>Protected</customSettingsVisibility>
+    <enableEnhancedLookup>false</enableEnhancedLookup>
+    <enableFeeds>false</enableFeeds>
+    <fields>
+        <fullName>Contact_Role__c</fullName>
+        <defaultValue>&quot;Attendee&quot;</defaultValue>
+        <externalId>false</externalId>
+        <inlineHelpText>Name of the opportunity contact role to create for each ticketed contact, such as Participant or Attendee.</inlineHelpText>
+        <label>Contact Role</label>
+        <length>100</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Create_Opportunities__c</fullName>
+        <defaultValue>true</defaultValue>
+        <externalId>false</externalId>
+        <inlineHelpText>Check this box to create an opportunity whenever an Eventbrite lead with ticket purchase data is converted to a contact.</inlineHelpText>
+        <label>Create Opportunities</label>
+        <type>Checkbox</type>
+    </fields>
+    <fields>
+        <fullName>Opportunity_Record_Type__c</fullName>
+        <defaultValue>&quot;Event Registration&quot;</defaultValue>
+        <externalId>false</externalId>
+        <inlineHelpText>Name of the record type for new ticket purchase opportunities.</inlineHelpText>
+        <label>Opportunity Record Type</label>
+        <length>100</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Stage_Name__c</fullName>
+        <defaultValue>&quot;Closed Won&quot;</defaultValue>
+        <externalId>false</externalId>
+        <inlineHelpText>Name of the stage for new event registration opportunities.</inlineHelpText>
+        <label>Stage Name</label>
+        <length>50</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <label>Eventbrite Opportunity Settings</label>
+</CustomObject>

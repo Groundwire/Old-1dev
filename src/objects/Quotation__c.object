@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <actionOverrides>
+        <actionName>Accept</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Clone</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Delete</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Edit</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>List</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>New</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Tab</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>View</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <deploymentStatus>Deployed</deploymentStatus>
+    <enableActivities>true</enableActivities>
+    <enableFeeds>false</enableFeeds>
+    <enableHistory>false</enableHistory>
+    <enableReports>true</enableReports>
+    <fields>
+        <fullName>Description__c</fullName>
+        <externalId>false</externalId>
+        <label>Description</label>
+        <length>10000</length>
+        <type>LongTextArea</type>
+        <visibleLines>10</visibleLines>
+    </fields>
+    <fields>
+        <fullName>Quote_Campaign__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Lookup the main Campaign this Quotation is about</inlineHelpText>
+        <label>Quote Campaign</label>
+        <referenceTo>Campaign</referenceTo>
+        <relationshipLabel>Quotations</relationshipLabel>
+        <relationshipName>Quotations</relationshipName>
+        <type>Lookup</type>
+    </fields>
+    <fields>
+        <fullName>Quote_Date__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Date of quote</inlineHelpText>
+        <label>Quote Date</label>
+        <required>false</required>
+        <type>Date</type>
+    </fields>
+    <fields>
+        <fullName>Quote_Issues__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Issue interest(s) to which the quote relates</inlineHelpText>
+        <label>Quote Issues</label>
+        <picklist>
+            <picklistValues>
+                <fullName>Other</fullName>
+                <default>false</default>
+            </picklistValues>
+            <sorted>false</sorted>
+        </picklist>
+        <type>MultiselectPicklist</type>
+        <visibleLines>10</visibleLines>
+    </fields>
+    <fields>
+        <fullName>Quote_Nature__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Nature of the quote</inlineHelpText>
+        <label>Quote Nature</label>
+        <picklist>
+            <picklistValues>
+                <fullName>Compliment</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Impact</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Recommendation</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Story</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Success</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Vow</fullName>
+                <default>false</default>
+            </picklistValues>
+            <sorted>false</sorted>
+        </picklist>
+        <type>MultiselectPicklist</type>
+        <visibleLines>10</visibleLines>
+    </fields>
+    <fields>
+        <fullName>Quote_Permission__c</fullName>
+        <description>fka Quote Usage Guidlines &amp; Quote_Usage_Guidelines</description>
+        <externalId>false</externalId>
+        <label>Quote Permission</label>
+        <picklist>
+            <picklistValues>
+                <fullName>Pending, internal use only</fullName>
+                <default>true</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Approved for public use, attribution ok</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Approved for public use, anonymous only</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Denied, internal use only</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Don&apos;t ask, internal use only</fullName>
+                <default>false</default>
+            </picklistValues>
+            <sorted>false</sorted>
+        </picklist>
+        <type>Picklist</type>
+    </fields>
+    <fields>
+        <fullName>Quote_Source__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>This is to explain where the quote came from.  Ex. - survey</inlineHelpText>
+        <label>Quote Source</label>
+        <length>255</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Quote_Text_Original__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Full unedited quote as originally received / heard</inlineHelpText>
+        <label>Quote Text - Original</label>
+        <length>32000</length>
+        <type>LongTextArea</type>
+        <visibleLines>10</visibleLines>
+    </fields>
+    <fields>
+        <fullName>Quote_Text_Public__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Edited from the original, prepared for public use (if permission has been granted - see permission field)</inlineHelpText>
+        <label>Quote Text - Public</label>
+        <length>32000</length>
+        <type>LongTextArea</type>
+        <visibleLines>10</visibleLines>
+    </fields>
+    <fields>
+        <fullName>Quoted_Contact__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Lookup the Contact who wrote or said this quotation</inlineHelpText>
+        <label>Quoted Contact</label>
+        <referenceTo>Contact</referenceTo>
+        <relationshipLabel>Quotations</relationshipLabel>
+        <relationshipName>Quotation</relationshipName>
+        <type>Lookup</type>
+    </fields>
+    <fields>
+        <fullName>Quoted_Organization__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Lookup the Organization this quotation was made on behalf of</inlineHelpText>
+        <label>Quoted Organization</label>
+        <referenceTo>Account</referenceTo>
+        <relationshipLabel>Quotations</relationshipLabel>
+        <relationshipName>Quotation</relationshipName>
+        <type>Lookup</type>
+    </fields>
+    <fields>
+        <fullName>Show_On_Website__c</fullName>
+        <defaultValue>false</defaultValue>
+        <externalId>false</externalId>
+        <inlineHelpText>Check if OK to show this quotation on website</inlineHelpText>
+        <label>Show On Website?</label>
+        <type>Checkbox</type>
+    </fields>
+    <label>Quotation</label>
+    <listViews>
+        <fullName>All_Quotations</fullName>
+        <columns>NAME</columns>
+        <columns>Quoted_Contact__c</columns>
+        <columns>Quoted_Organization__c</columns>
+        <columns>Quote_Campaign__c</columns>
+        <columns>Quote_Date__c</columns>
+        <columns>CREATED_DATE</columns>
+        <columns>Quote_Permission__c</columns>
+        <filterScope>Everything</filterScope>
+        <label>All Quotations</label>
+    </listViews>
+    <nameField>
+        <label>Quote Name</label>
+        <type>Text</type>
+    </nameField>
+    <pluralLabel>Quotations</pluralLabel>
+    <searchLayouts>
+        <customTabListAdditionalFields>Quoted_Contact__c</customTabListAdditionalFields>
+        <customTabListAdditionalFields>Quoted_Organization__c</customTabListAdditionalFields>
+        <customTabListAdditionalFields>Quote_Campaign__c</customTabListAdditionalFields>
+        <customTabListAdditionalFields>Quote_Date__c</customTabListAdditionalFields>
+        <customTabListAdditionalFields>CREATED_DATE</customTabListAdditionalFields>
+        <customTabListAdditionalFields>Quote_Permission__c</customTabListAdditionalFields>
+        <lookupDialogsAdditionalFields>Quoted_Contact__c</lookupDialogsAdditionalFields>
+        <lookupDialogsAdditionalFields>Quoted_Organization__c</lookupDialogsAdditionalFields>
+        <lookupDialogsAdditionalFields>Quote_Campaign__c</lookupDialogsAdditionalFields>
+        <lookupDialogsAdditionalFields>Quote_Date__c</lookupDialogsAdditionalFields>
+        <lookupDialogsAdditionalFields>CREATED_DATE</lookupDialogsAdditionalFields>
+        <lookupDialogsAdditionalFields>Quote_Permission__c</lookupDialogsAdditionalFields>
+        <lookupPhoneDialogsAdditionalFields>Quoted_Contact__c</lookupPhoneDialogsAdditionalFields>
+        <lookupPhoneDialogsAdditionalFields>Quoted_Organization__c</lookupPhoneDialogsAdditionalFields>
+        <lookupPhoneDialogsAdditionalFields>Quote_Campaign__c</lookupPhoneDialogsAdditionalFields>
+        <lookupPhoneDialogsAdditionalFields>Quote_Date__c</lookupPhoneDialogsAdditionalFields>
+        <lookupPhoneDialogsAdditionalFields>CREATED_DATE</lookupPhoneDialogsAdditionalFields>
+        <lookupPhoneDialogsAdditionalFields>Quote_Permission__c</lookupPhoneDialogsAdditionalFields>
+        <searchFilterFields>Quoted_Contact__c</searchFilterFields>
+        <searchFilterFields>Quoted_Organization__c</searchFilterFields>
+        <searchFilterFields>Quote_Campaign__c</searchFilterFields>
+        <searchFilterFields>Quote_Date__c</searchFilterFields>
+        <searchFilterFields>CREATED_DATE</searchFilterFields>
+        <searchFilterFields>Quote_Permission__c</searchFilterFields>
+        <searchResultsAdditionalFields>Quoted_Contact__c</searchResultsAdditionalFields>
+        <searchResultsAdditionalFields>Quoted_Organization__c</searchResultsAdditionalFields>
+        <searchResultsAdditionalFields>Quote_Campaign__c</searchResultsAdditionalFields>
+        <searchResultsAdditionalFields>Quote_Date__c</searchResultsAdditionalFields>
+        <searchResultsAdditionalFields>CREATED_DATE</searchResultsAdditionalFields>
+        <searchResultsAdditionalFields>Quote_Permission__c</searchResultsAdditionalFields>
+    </searchLayouts>
+    <sharingModel>ReadWrite</sharingModel>
+</CustomObject>

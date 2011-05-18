@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <customSettingsType>Hierarchy</customSettingsType>
+    <customSettingsVisibility>Protected</customSettingsVisibility>
+    <enableFeeds>false</enableFeeds>
+    <fields>
+        <fullName>Campaign_Statuses_1__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Enter each status on a separate line.  On each line, enter the status name, then y/n is it a Responded status, then y/n is it the default.  Separate each by semicolons.  Use &quot;y&quot; or &quot;n&quot; for the y/n values.  Example: &quot;Attended;y;n&quot; (without the quotes)</inlineHelpText>
+        <label>Campaign Statuses 1</label>
+        <required>false</required>
+        <type>TextArea</type>
+    </fields>
+    <fields>
+        <fullName>Campaign_Statuses_2__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Enter each status on a separate line. On each line, enter the status name, then y/n is it a Responded status, then y/n is it the default. Separate each by semicolons. Use &quot;y&quot; or &quot;n&quot; for the y/n values. Example: &quot;Attended;y;n&quot; (without the quotes)</inlineHelpText>
+        <label>Campaign Statuses 2</label>
+        <required>false</required>
+        <type>TextArea</type>
+    </fields>
+    <fields>
+        <fullName>Campaign_Statuses_3__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Enter each status on a separate line. On each line, enter the status name, then y/n is it a Responded status, then y/n is it the default. Separate each by semicolons. Use &quot;y&quot; or &quot;n&quot; for the y/n values. Example: &quot;Attended;y;n&quot; (without the quotes)</inlineHelpText>
+        <label>Campaign Statuses 3</label>
+        <required>false</required>
+        <type>TextArea</type>
+    </fields>
+    <fields>
+        <fullName>Campaign_Statuses_4__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Enter each status on a separate line. On each line, enter the status name, then y/n is it a Responded status, then y/n is it the default. Separate each by semicolons. Use &quot;y&quot; or &quot;n&quot; for the y/n values. Example: &quot;Attended;y;n&quot; (without the quotes)</inlineHelpText>
+        <label>Campaign Statuses 4</label>
+        <required>false</required>
+        <type>TextArea</type>
+    </fields>
+    <fields>
+        <fullName>Campaign_Statuses_5__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Enter each status on a separate line. On each line, enter the status name, then y/n is it a Responded status, then y/n is it the default. Separate each by semicolons. Use &quot;y&quot; or &quot;n&quot; for the y/n values. Example: &quot;Attended;y;n&quot; (without the quotes)</inlineHelpText>
+        <label>Campaign Statuses 5</label>
+        <required>false</required>
+        <type>TextArea</type>
+    </fields>
+    <fields>
+        <fullName>Campaign_Type_Subtype_1__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Enter a type and/or type+subtype as text, separated by a semicolon (ex: &quot;Event;House Party&quot;, without the quotes).   Even if you are omitting the subtype, still include the semicolon at the end of your string.</inlineHelpText>
+        <label>Campaign Type/Subtype 1</label>
+        <length>200</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Campaign_Type_Subtype_2__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Enter a type and/or type+subtype as text, separated by a semicolon (ex: &quot;Event;House Party&quot;, without the quotes). Even if you are omitting the subtype, still include the semicolon at the end of your string.</inlineHelpText>
+        <label>Campaign Type/Subtype 2</label>
+        <length>200</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Campaign_Type_Subtype_3__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Enter a type and/or type+subtype as text, separated by a semicolon (ex: &quot;Event;House Party&quot;, without the quotes). Even if you are omitting the subtype, still include the semicolon at the end of your string.</inlineHelpText>
+        <label>Campaign Type/Subtype 3</label>
+        <length>200</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Campaign_Type_Subtype_4__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Enter a type and/or type+subtype as text, separated by a semicolon (ex: &quot;Event;House Party&quot;, without the quotes). Even if you are omitting the subtype, still include the semicolon at the end of your string.</inlineHelpText>
+        <label>Campaign Type/Subtype 4</label>
+        <length>200</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Campaign_Type_Subtype_5__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Enter a type and/or type+subtype as text, separated by a semicolon (ex: &quot;Event;House Party&quot;, without the quotes). Even if you are omitting the subtype, still include the semicolon at the end of your string.</inlineHelpText>
+        <label>Campaign Type/Subtype 5</label>
+        <length>200</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <label>Default Campaign Status Settings</label>
+</CustomObject>

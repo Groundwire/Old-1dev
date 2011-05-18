@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <customSettingsType>Hierarchy</customSettingsType>
+    <customSettingsVisibility>Protected</customSettingsVisibility>
+    <description>settings for the clone monthly gifts feature, etc.</description>
+    <enableFeeds>false</enableFeeds>
+    <fields>
+        <fullName>Clone_Complete_Email_Notify__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>list of email addresses (semicolon-delimited) that should receive notification of completion of the Clone Monthly Gifts process (in addition to user who launched it, if any)</inlineHelpText>
+        <label>Clone Complete Email Notify</label>
+        <length>255</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Clone_Installment_Day__c</fullName>
+        <defaultValue>1</defaultValue>
+        <externalId>false</externalId>
+        <inlineHelpText>the day of the month that cloned gifts will have installments added to - do not enter a number greater than 28</inlineHelpText>
+        <label>Clone Installment Day</label>
+        <precision>2</precision>
+        <required>true</required>
+        <scale>0</scale>
+        <type>Number</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>FieldsToSkip__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>enter field names of fields from original opp that should not be cloned along w/ the opp, separated w/ semicolons</inlineHelpText>
+        <label>FieldsToSkip</label>
+        <length>255</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Months_Default_to_Last_Year__c</fullName>
+        <defaultValue>4</defaultValue>
+        <externalId>false</externalId>
+        <inlineHelpText>for how many months in the new year should the year selection default to &quot;Last Year&quot; (i.e. enter 4 for April)</inlineHelpText>
+        <label>Months Default to Last Year</label>
+        <precision>2</precision>
+        <required>true</required>
+        <scale>0</scale>
+        <type>Number</type>
+        <unique>false</unique>
+    </fields>
+    <label>Monthly Gifts Settings</label>
+</CustomObject>

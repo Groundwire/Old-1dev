@@ -1,0 +1,150 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<link href="/dCSS/Theme2/default/common.css" type="text/css"
+	rel="stylesheet">
+
+</head>
+<script type="text/javascript"> 
+
+function generateLink() {
+	var clippingObjectCode = getObjectCode();
+	var servName = getServerName();
+	var URLFieldId = getURLFieldId();
+	var contentFieldId = getClippingContentFieldId();
+
+	var linkDestination = "javascript:location.href='https://" + servName + ".salesforce.com/" + clippingObjectCode + "/e?retURL=%2F" + clippingObjectCode + "%2Fo&" + URLFieldId + "='+encodeURIComponent(location.href)+'&" + getClippingContentFieldId() + "='+encodeURIComponent((window.getSelection%20?%20window.getSelection()%20:%20document.getSelection%20?%20document.getSelection()%20:%20document.selection.createRange().text))+'&Name='+encodeURIComponent(document.title)";
+	var linkHTML = "<a id=\"link\" href=\"" + linkDestination + "\">Clipping Bookmarklet</a>";
+	document.getElementById('link_div').innerHTML = linkHTML;	
+    document.getElementById('bookmarklet_instuctions_div').style.visibility = "visible";	
+}
+
+function getServerName() {
+	return document.getElementById('serverName').value;
+}
+
+function getObjectCode() {
+	return document.getElementById('objectCode').value;
+}
+
+function getURLFieldId() {
+	return document.getElementById('clippingURLFieldId').value;
+}
+
+function getClippingContentFieldId() {
+	return document.getElementById('clippingContentFieldId').value;
+}
+</script>
+<body>
+
+<br>
+<br>
+
+<h1>Create a Clippings Bookmarklet</h1>
+
+<br>
+
+<p>Follow these steps using the form below to create a "bookmarklet"
+for your web browser (Firefox). Then you can use your bookmarklet to
+save web clippings into Salesforce. <br>
+
+<ol>
+
+	<li>Copy the server name of your Salesforce pages from the URL and
+	paste in the form below. Example: If your URL when logged in to
+	Salesforce is http://na5.salesforce.com , your server name is na5 .</li>
+
+	<br>
+
+	<table>
+		<tr>
+			<td>Name of the web server:</td>
+			<td><input type="text" id="serverName" value="na6"></td>
+		</tr>
+	</table>
+
+	<br>
+
+	<li>In a new browser tab or window, go to the Clippings tab. Copy
+	the Clippings tab 3-character object code that is visible in its URL
+	and paste in the form: Example: If your Clippings tab URL is
+	http://na5.salesforce.com/a0J/o , its object code is a0J</li>
+
+	<br>
+
+	<table>
+		<tr>
+			<td>Three-character object code:</td>
+			<td><input type="text" id="objectCode" value="a0L"></td>
+		</tr>
+	</table>
+
+	<br>
+
+	<li>Copy the Id of these Clipping fields and paste in the form. To
+	get clipping field IDs, go to Setup | App Setup | Create | Objects |
+	Clipping | in the Custom Fields & Relationships section click a field,
+	i.e. Clipping Content | in its URL, copy the number (only). Example: If
+	the Clipping Content field URL is
+	https://na2.salesforce.com/00N40000001yegj , its Id is 00N40000001yegj
+	. (You may need to ask a system administrator for the Clipping field
+	Ids.) <br>
+
+	<table>
+
+		<tr>
+			<td>Clipping Content field Id:</td>
+			<td><input type="text" id="clippingContentFieldId"
+				value="00N80000002tCrO"></td>
+		</tr>
+
+		<br>
+
+		<tr>
+			<td>Clipping URL field Id:</td>
+			<td><input type="text" id="clippingURLFieldId"
+				value="00N80000002tCrW"></td>
+		</tr>
+
+	</table>
+
+	<br>
+
+	<li>Click this
+	<button onclick="javascript:generateLink();">Generate
+	Bookmarklet</button>
+	button to create your bookmarklet.</li>
+</ol>
+
+<div Id="link_div"></div>
+<div Id="bookmarklet_instuctions_div" style="visibility: hidden;">
+
+<ol>
+
+	<li>Now drag the bookmarklet link up to Firefox's bookmark
+	toolbar.</li>
+
+	<br>
+
+	<li>Go to any web page you want to clip and save.</li>
+
+	<br>
+
+	<li>When on that page, highlight some text.</li>
+
+	<br>
+
+	<li>Click the bookmarklet up in your browser's bookmark toolbar;
+	you should be redirected to the New Clipping page, with data dropping
+	into the correct fields.</li>
+
+	<br>
+
+	<li>If it doesn't work, try again. If you need help, contact your
+	system administrator.</li>
+
+</ol>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,14 @@
+<apex:page standardController="Account">
+      
+    <apex:pageBlock title="Account Details">
+        <apex:pageBlockSection >
+            <apex:outputField value="{!account.name}"/>
+            <apex:outputField value="{!account.accountNumber}"/>
+        </apex:pageBlockSection>
+    </apex:pageBlock>
+    
+    <apex:pageBlock title="list of contacts from flex">
+        <apex:flash src="{!$Resource.FlexTest}" width="90%" height="700"/>
+    </apex:pageBlock>
+      
+</apex:page>

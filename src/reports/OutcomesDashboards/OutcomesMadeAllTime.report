@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Report xmlns="http://soap.sforce.com/2006/04/metadata">
+    <columns>
+        <field>CUST_NAME</field>
+    </columns>
+    <columns>
+        <field>Outcome__c.Outcome_Owning_Organization__c</field>
+    </columns>
+    <columns>
+        <field>Outcome__c.Type__c</field>
+    </columns>
+    <columns>
+        <field>Outcome__c.Impact_Notes__c</field>
+    </columns>
+    <columns>
+        <field>Outcome__c.Current_Priority__c</field>
+    </columns>
+    <columns>
+        <field>Outcome__c.Final_Outcome_Impact__c</field>
+    </columns>
+    <columns>
+        <field>Outcome__c.Final_Outcome_Quality__c</field>
+    </columns>
+    <description>for Dashboard</description>
+    <filter>
+        <criteriaItems>
+            <column>Outcome__c.Stage__c</column>
+            <operator>equals</operator>
+            <value>Closed</value>
+        </criteriaItems>
+    </filter>
+    <format>Summary</format>
+    <groupingsDown>
+        <dateGranularity>Year</dateGranularity>
+        <field>Outcome__c.Close_Date__c</field>
+        <sortOrder>Asc</sortOrder>
+    </groupingsDown>
+    <name>Outcomes Made All Time</name>
+    <reportType>CustomEntity$Outcome__c</reportType>
+    <scope>organization</scope>
+    <showDetails>true</showDetails>
+    <timeFrameFilter>
+        <dateColumn>Outcome__c.Close_Date__c</dateColumn>
+        <interval>INTERVAL_CUSTOM</interval>
+    </timeFrameFilter>
+</Report>

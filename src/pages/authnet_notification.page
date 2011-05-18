@@ -1,0 +1,5 @@
+<apex:page controller="GW_CTRL_AuthnetNotification"
+	action="{!processNotification}">
+	<h1>Authorize.net Silent Post Listener</h1>
+	<apex:messages />
+</apex:page>

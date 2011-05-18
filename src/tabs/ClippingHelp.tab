@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomTab xmlns="http://soap.sforce.com/2006/04/metadata">
+    <frameHeight>600</frameHeight>
+    <hasSidebar>true</hasSidebar>
+    <label>Clipping Help</label>
+    <mobileReady>false</mobileReady>
+    <motif>Custom55: Books</motif>
+    <scontrol>Clipping_Help</scontrol>
+</CustomTab>

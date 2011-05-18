@@ -1,0 +1,5 @@
+<apex:page controller="GW_CTRL_PaypalNotification"
+	action="{!processNotification}">
+	<h1>Paypal Notification Listener</h1>
+	<apex:messages />
+</apex:page>

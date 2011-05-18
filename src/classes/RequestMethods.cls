@@ -1,0 +1,1 @@
+public enum RequestMethods { GET, POST, HEAD }

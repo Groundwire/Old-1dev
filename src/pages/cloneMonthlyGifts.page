@@ -1,0 +1,42 @@
+<apex:page controller="ONEN_CTRL_CloneMonthlyGifts"
+	title="Renew Monthly Gifts" tabstyle="Opportunity">
+	<apex:form >
+
+		<apex:sectionHeader title="Renew Monthly Gifts">
+			<p>This utility will renew all active monthly gift Opportunities,
+			and carry them over to the new year. It will include only Opps from
+			the selected year that are monthly (have a Monthly Gift Amount), are
+			Won, and have not been marked Discontinued. Prior to running this
+			wizard, please review your monthly Opps and mark any discontinued as
+			appropriate.</p>
+			<p>You will be notified via email when this process has
+			completed. Please do not run it twice.</p>
+		</apex:sectionHeader>
+
+		<apex:pageBlock title="Select which Year to Renew">
+
+			<apex:pageMessage summary="This pageMessage will always display. Validation error 
+           messages appear in the pageMessages component."
+				severity="warning" strength="3" rendered="{!cloneWarningMsg!=null}" />
+			<apex:pageMessages />
+			<p></p>
+
+
+			<apex:selectList value="{!YearSelection}" id="yearOptions"
+				multiselect="false" size="1">
+				<apex:selectOptions value="{!YearOptions}" />
+			</apex:selectList>
+
+
+			<apex:pageBlockButtons >
+				<apex:commandButton value="Start" action="{!cloneOpps}"
+					rerender="jobs" />
+			</apex:pageBlockButtons>
+		</apex:pageBlock>
+		<apex:outputpanel id="jobs">
+			<c:batchJobs id="batchjobs" numberOfJobs="1"
+				batchComponentLabel="Gift Cloning Progress"
+				rendered="{!showProgress}" />
+		</apex:outputpanel>
+	</apex:form>
+</apex:page>

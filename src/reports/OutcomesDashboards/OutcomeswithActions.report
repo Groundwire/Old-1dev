@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Report xmlns="http://soap.sforce.com/2006/04/metadata">
+    <columns>
+        <field>CAMPAIGN_NAME</field>
+    </columns>
+    <columns>
+        <aggregateTypes>Sum</aggregateTypes>
+        <field>NUM_RESPONSES</field>
+    </columns>
+    <columns>
+        <field>FK_NAME</field>
+    </columns>
+    <description>for Dashboard</description>
+    <filter>
+        <criteriaItems>
+            <column>Campaign.Leadership_Level__c</column>
+            <operator>notEqual</operator>
+        </criteriaItems>
+    </filter>
+    <format>Summary</format>
+    <groupingsDown>
+        <dateGranularity>Day</dateGranularity>
+        <field>FK_NAME</field>
+        <sortOrder>Asc</sortOrder>
+    </groupingsDown>
+    <name>Outcomes with Actions</name>
+    <params>
+        <name>scopeid</name>
+        <value></value>
+    </params>
+    <reportType>CampaignList@Campaign.Outcome__c</reportType>
+    <scope>orgAll</scope>
+    <showDetails>false</showDetails>
+</Report>
