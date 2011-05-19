@@ -191,7 +191,6 @@
         <fields>Send_Date__c</fields>
         <fields>Sent_Not_Sent__c</fields>
         <fields>Active__c</fields>
-        <fields>Contact.Full_Name__c</fields>
         <fields>Contact.CNTC_EMAIL</fields>
         <relatedList>Drip_Event__c.Campaign__c</relatedList>
     </relatedLists>

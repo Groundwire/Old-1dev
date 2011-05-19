@@ -354,7 +354,6 @@
     </relatedLists>
     <relatedLists>
         <fields>OBJECT_ID</fields>
-        <fields>Contact.Full_Name__c</fields>
         <fields>Relationship__c</fields>
         <fields>Relationship_Status__c</fields>
         <relatedList>Account_Relationship__c.Related_Account__c</relatedList>
