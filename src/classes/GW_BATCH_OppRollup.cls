@@ -6,7 +6,7 @@ global class GW_BATCH_OppRollup implements Database.Batchable<SObject>, Schedula
 	public String query { get; set; }
 
 	// constructors
-	public GW_BATCH_OppRollup() { }
+	public GW_BATCH_OppRollup() { }				// this constructor needed to allow this class to be schedulable
 	public GW_BATCH_OppRollup(string q) { 
 		query = q; 
 	}
@@ -31,9 +31,9 @@ global class GW_BATCH_OppRollup implements Database.Batchable<SObject>, Schedula
 			rg.RollupAccounts((list<account>)result);
  		} else {
 			rg.RollupHouseholds((list<onen_household__c>)result);
-			//also reconcile any Opportunity Contact Roles that got out of sync with the Primary Contact on Opp
-			ONEN_OpportunityContactRoles ocr = new ONEN_OpportunityContactRoles();
- 			ocr.reconcileConRoles((list<ONEN_household__c>)result);
+	      	//also reconcile any Opportunity Contact Roles that got out of sync with the Primary Contact on Opp
+	      	ONEN_OpportunityContactRoles ocr = new ONEN_OpportunityContactRoles();
+    	  	ocr.reconcileConRoles((list<ONEN_household__c>)result);
  		}
 	}
 
