@@ -12,7 +12,9 @@ global class GW_WEBSVC_OnlinePayment {
 	// array structure to store each item
 	global class Item {
 		WebService string name; 
+		// code is a product id
 		WebService string code;
+		WebService string discountcode;
 		WebService integer quantity;
 		WebService decimal amount;
 	}
@@ -38,6 +40,7 @@ global class GW_WEBSVC_OnlinePayment {
 		WebService OnlinePayment.Processor pmtProcessor;
 		WebService OnlinePayment.PaymentType pmtType;
 	 	WebService OnlinePayment.PaymentStatus pmtStatus;
+		WebService string priceBook;
 		WebService string txnId;
 		WebService string parentTxnId;   // for refund or reversal
 		WebService string cardType;
