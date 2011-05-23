@@ -57,6 +57,7 @@ public abstract class OnlinePayment {
 	public class Item {
 		public string name { get; set; } 
 		public string code { get; set; }
+		public string discountcode { get; set; }
 		public integer quantity { get; set; }
 		public decimal amount { get; set; }
 		
@@ -86,6 +87,7 @@ public abstract class OnlinePayment {
 	public Processor pmtProcessor { get; set; }
 	public PaymentType pmtType { get; set; }
  	public PaymentStatus pmtStatus { get; set; }
+ 	public string priceBook { get; set; }
 	public string txnId { get; set; }
 	public string parentTxnId { get; set; }   // for refund or reversal
 	public string cardType { get; set; }
