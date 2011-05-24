@@ -163,7 +163,7 @@
         <fullName>ContactId__c</fullName>
         <description>The primary contact for this opportunity. Indicates a hard credit (i.e. the opportunity is attributable to this contact)</description>
         <externalId>false</externalId>
-        <inlineHelpText>The primary contact for this opportunity. Indicates a hard credit (i.e. the opportunity is attributable to this contact)</inlineHelpText>
+        <inlineHelpText>Indicates who this Opportunity is from. If the Opp is from a person, enter a Contact Name. If the Opp is from an org or business, enter an Organization Name. You cannot enter both.</inlineHelpText>
         <label>Contact Name</label>
         <referenceTo>Contact</referenceTo>
         <relationshipLabel>Opportunities (Contact Name)</relationshipLabel>
