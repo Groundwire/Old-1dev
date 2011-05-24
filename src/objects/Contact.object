@@ -454,16 +454,6 @@ NOTE: This does not take into account any past overrides or formerly-checked che
         <type>Checkbox</type>
     </fields>
     <fields>
-        <fullName>Full_Name__c</fullName>
-        <externalId>false</externalId>
-        <formula>FirstName &amp; &quot; &quot; &amp;  LastName</formula>
-        <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
-        <label>Full Name</label>
-        <required>false</required>
-        <type>Text</type>
-        <unique>false</unique>
-    </fields>
-    <fields>
         <fullName>Gender__c</fullName>
         <externalId>false</externalId>
         <label>Gender</label>
