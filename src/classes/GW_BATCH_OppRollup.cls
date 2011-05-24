@@ -11,7 +11,7 @@ global class GW_BATCH_OppRollup implements Database.Batchable<SObject>, Schedula
 		query = q; 
 	}
 
-	// this execute is used by the schedulable interface
+	// this execute is used by the schedulable interface, eliminates needs for separate schedulable class
 	global void execute(SchedulableContext SC) { 
 		GW_OppRollups rg = new GW_OppRollups();
 		rg.rollupAll();    
