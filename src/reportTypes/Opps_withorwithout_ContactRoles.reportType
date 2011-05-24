@@ -1015,11 +1015,6 @@
         </columns>
         <columns>
             <checkedByDefault>false</checkedByDefault>
-            <field>Full_Name__c</field>
-            <table>Opportunity.OpportunityContactRoles</table>
-        </columns>
-        <columns>
-            <checkedByDefault>false</checkedByDefault>
             <field>Primary_Address_Name_Block_HH__c</field>
             <table>Opportunity.OpportunityContactRoles</table>
         </columns>
