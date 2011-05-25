@@ -2,10 +2,13 @@ public class ONEN_ZipLookup {
 // Written by Evan Callahan, copyright (c) 2008 NPower Seattle
 // This program is released under the GNU General Public License. http://www.gnu.org/licenses/
 
+<<<<<<< HEAD
 // TODO: develop a strategy for extending this class to support different regions
 // for example, put the map in an extension class, use an external API, or
 // store them in a custom object
 
+=======
+>>>>>>> d630976591515e254cbef1d61a3e526671420948
 	// list of strings to store the values found
 	string[] data;
 
@@ -728,7 +731,7 @@ public class ONEN_ZipLookup {
 		'98948' => new string[] {'Toppenish','Yakima','WA'},
 		'98951' => new string[] {'Wapato','Yakima','WA'},
 		'98952' => new string[] {'White Swan','Yakima','WA'},
-		'98953' => new string[] {'Zilah','Yakima','WA'}
+		'98953' => new string[] {'Zillah','Yakima','WA'}
 	};
 
 	// constructor
