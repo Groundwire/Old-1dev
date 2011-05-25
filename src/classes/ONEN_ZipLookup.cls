@@ -1,7 +1,7 @@
 public class ONEN_ZipLookup {
 // Written by Evan Callahan, copyright (c) 2008 NPower Seattle
 // This program is released under the GNU General Public License. http://www.gnu.org/licenses/
-	
+
 	// list of strings to store the values found
 	string[] data;
 
@@ -724,7 +724,7 @@ public class ONEN_ZipLookup {
 		'98948' => new string[] {'Toppenish','Yakima','WA'},
 		'98951' => new string[] {'Wapato','Yakima','WA'},
 		'98952' => new string[] {'White Swan','Yakima','WA'},
-		'98953' => new string[] {'Zilah','Yakima','WA'}
+		'98953' => new string[] {'Zillah','Yakima','WA'}
 	};
 
 	// constructor
@@ -735,7 +735,7 @@ public class ONEN_ZipLookup {
 			data = zc.get(zip5);
 		}
 	}
-	
+
 	public string getCity() {
 		if (data != null) {
 			return data[0];
@@ -751,32 +751,32 @@ public class ONEN_ZipLookup {
 			return null;
 		}
 	}
-	
+
 	public string getState() {
 		if (data != null) {
 			return data[2];
 		} else {
 			return null;
-		}	
+		}
 	}
-		
+
 	static TestMethod void TestLookup() {
 		//account a = new account(name='test', billingPostalCode='98236', shippingPostalCode='98260');
 		//insert a;
-		
+
 		contact c = new contact(lastname='test', mailingCity='Timbuktu', mailingPostalCode='98144',otherPostalCode='98114');
 		insert c;
 		//contact returnedC  = [select mailingCity,otherCity,mailingPostalCode,otherPostalCode,work_county__c,home_county__c from contact where id=:c.id];
 		//system.debug(returnedC);
-		//system.assertEquals('Clinton', [select billingCity from account where id=:a.id].billingCity);	
-		//system.assertEquals('Island', [select county__c from account where id=:a.id].county__c);	
-		//system.assertEquals('Langley', [select shippingCity from account where id=:a.id].shippingCity);	
-		//system.assertEquals('WA', [select shippingState from account where id=:a.id].shippingState);	
-		system.assertEquals('Timbuktu', [select mailingCity from contact where id=:c.id].mailingCity);	
+		//system.assertEquals('Clinton', [select billingCity from account where id=:a.id].billingCity);
+		//system.assertEquals('Island', [select county__c from account where id=:a.id].county__c);
+		//system.assertEquals('Langley', [select shippingCity from account where id=:a.id].shippingCity);
+		//system.assertEquals('WA', [select shippingState from account where id=:a.id].shippingState);
+		system.assertEquals('Timbuktu', [select mailingCity from contact where id=:c.id].mailingCity);
 		system.assertEquals('King', [select work_county__c from contact where id=:c.id].work_county__c);
-		system.assertEquals('Seattle', [select otherCity from contact where id=:c.id].otherCity);	
+		system.assertEquals('Seattle', [select otherCity from contact where id=:c.id].otherCity);
 		system.assertEquals('King', [select home_county__c from contact where id=:c.id].home_county__c);
-		system.assertEquals('WA', [select otherState from contact where id=:c.id].otherState);	
-		system.assertEquals('WA', [select mailingState from contact where id=:c.id].mailingState);		
-	} 
+		system.assertEquals('WA', [select otherState from contact where id=:c.id].otherState);
+		system.assertEquals('WA', [select mailingState from contact where id=:c.id].mailingState);
+	}
 }
